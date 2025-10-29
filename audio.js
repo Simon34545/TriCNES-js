@@ -1,4 +1,8 @@
-const rate = 44100;
+const options = {};
+window.location.search.substring(1).split('&').forEach(v => options[v.split('=')[0]] = v.substring(v.indexOf('=') + 1));
+options.rate = parseInt(options.rate);
+
+const rate = isNaN(options.rate) ? 44100 : options.rate;
 const audioContext = new AudioContext({latencyHint: 50/1000, sampleRate: rate});
 
 let clocksToRun = 0;
