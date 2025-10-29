@@ -1,6 +1,12 @@
+"use strict";
+
 const options = {};
 window.location.search.substring(1).split('&').forEach(v => options[v.split('=')[0]] = v.substring(v.indexOf('=') + 1));
 options.rate = parseInt(options.rate);
+options.speed = parseFloat(options.speed);
+
+vsync = !!options.vsync;
+speed = isNaN(options.speed) ? 1 : options.speed;
 
 const rate = isNaN(options.rate) ? 44100 : options.rate;
 const audioContext = new AudioContext({latencyHint: 50/1000, sampleRate: rate});
@@ -25,16 +31,20 @@ async function setupSound() {
 	
 	worklet.port.onmessage = function(e) {
 		const t0 = performance.now();
-		clocksToRun += 21477272 / rate;
+		clocksToRun += (21477272 * speed) / rate;
 		const clocks = Math.floor(clocksToRun);
 		clocksToRun -= clocks;
 		for (let i = 0; i < 128; i++) {
 			for (let j = 0; j < clocks; j++) {
-				_EmulatorCore();
+				emu._EmulatorCore();
+				
+				if (vsync && emu.FrameAdvance_ReachedVBlank) {
+					emu.FrameAdvance_ReachedVBlank = false;
+				}
 			}
 			
-			let pulse_out = ((sweep1Target < 0x800 && timer1Period > 7 && length1Counter && (sequencer1Sequence & (0x80 >> sequencer1Position))) ? (env1Constant ? env1Volume : env1Decay) : 0) + ((sweep2Target < 0x800 && timer2Period > 7 && length2Counter && (sequencer2Sequence & (0x80 >> sequencer2Position))) ? (env2Constant ? env2Volume : env2Decay) : 0);
-			let tnd_out = sequencer3Sequence[sequencer3Position] / 8227 + ((length4Counter && (shiftRegister & 1)) ? (env3Constant ? env3Volume : env3Decay) : 0) / 12241 + APU_DMC_Output / 22638;
+			let pulse_out = ((emu.sweep1Target < 0x800 && emu.timer1Period > 7 && emu.length1Counter && (emu.sequencer1Sequence & (0x80 >> emu.sequencer1Position))) ? (emu.env1Constant ? emu.env1Volume : emu.env1Decay) : 0) + ((emu.sweep2Target < 0x800 && emu.timer2Period > 7 && emu.length2Counter && (emu.sequencer2Sequence & (0x80 >> emu.sequencer2Position))) ? (emu.env2Constant ? emu.env2Volume : emu.env2Decay) : 0);
+			let tnd_out = Emulator.sequencer3Sequence[emu.sequencer3Position] / 8227 + ((emu.length4Counter && (emu.shiftRegister & 1)) ? (emu.env3Constant ? emu.env3Volume : emu.env3Decay) : 0) / 12241 + emu.APU_DMC_Output / 22638;
 			
 			if (pulse_out) pulse_out = 95.88 / ((8128 / pulse_out) + 100);
 			if (tnd_out) tnd_out = 159.88 / ((1 / tnd_out) + 100);

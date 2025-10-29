@@ -1,3 +1,5 @@
+"use strict";
+
 const rom = atob(`TkVTGhAQQAAAAAAAAAAAAAjAKMBFwGzAAQcCDA0ODwcDAwMDAwMHBAcEBAMDAwMDBwQHBAQEBAQD
 AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwEHAgwNDg8FBhESExQIBwQHBAQIAwMDAwMDAwMD
 AwMDAwMDAwMDCAEHAgwNDg8FBhESExQHAwMDAwgHBAcEBAgIBBAQEBAQEBAQEBAQEBAQEBAPDg0M
@@ -6898,13 +6900,19 @@ H3DHnJOcx3Aff//88/z/fx9j+///fz8PH2KappJKNA8BAgIE/IBCIgEDAwf//38/EhAgIEFGmOAf
 Hz8/f3744AMPHwsZe/v/AwweDhdmhoDvbz8IGHz//p9QPw8Xe7z+wPD40Jje3//AMHhw6GZhAff2
 /CAeP/8A+Qr84P79PwAAAAAAAAAAAwAAAAAAAAAAH3/H/38gf/4cf76Afz9//g==`).split('').map(c => c.charCodeAt(0));
 
+const speeds = [0.01, 0.03, 0.06, 0.12, 0.25, 0.50, 0.75, 1.00, 1.50, 2.00, 3.00, 4.00, 8.00, 16.00, 32.00, 64.00];
+let speedIdx = 7;
+let speed = 1;
+
 function CartFromB64(t) {
 	return new Cartridge(atob(t).split('').map(c => c.charCodeAt(0)));
 }
 
-Cart = new Cartridge(rom);
+const emu = new Emulator();
+emu.Cart = new Cartridge(rom);
 
-Power();
+let vsync = false;
+let screenMode = 5;
 
 const cvs = document.getElementById('screen');
 const ctx = cvs.getContext('2d');
@@ -6913,29 +6921,79 @@ const img2 = ctx.createImageData(256*8, 240);
 
 document.addEventListener('keydown', function(e) {
 	switch(e.code) {
+		case 'Minus':
+		speedIdx--;
+		speedIdx = Math.max(0, Math.min(speeds.length - 1, speedIdx));
+		speed = speeds[speedIdx];
+		break;
+		case 'Equal':
+		speedIdx++;
+		speedIdx = Math.max(0, Math.min(speeds.length - 1, speedIdx));
+		speed = speeds[speedIdx];
+		break;
+		case 'KeyV':
+		vsync = !vsync;
+		break;
+		case 'KeyR':
+		emu.Reset();
+		break;
+		case 'KeyN':
+		emu.PPU_DecodeSignal = !emu.PPU_DecodeSignal;
+		break;
+		case 'KeyS':
+		switch(++screenMode) {
+			case 6:
+			screenMode = 0;
+			case 0: // 1x scale
+			cvs.style.width = '256px';
+			cvs.style.height = '240px';
+			break;
+			case 1: // 1x scale 4:3
+			cvs.style.width = '320px';
+			cvs.style.height = '240px';
+			break;
+			case 2: // 2x scale
+			cvs.style.width = '512px';
+			cvs.style.height = '480px';
+			break;
+			case 3: // 2x scale 4:3
+			cvs.style.width = '640px';
+			cvs.style.height = '480px';
+			break;
+			case 4: // 4x scale
+			cvs.style.width = '1024px';
+			cvs.style.height = '960px';
+			break;
+			case 5: // 4x scale 4:3
+			cvs.style.width = '1280px';
+			cvs.style.height = '960px';
+			break;
+		}
+		break
+		
 		case 'KeyX':
-		ControllerPort1 |= 0x80;
+		emu.ControllerPort1 |= 0x80;
 		break;
 		case 'KeyZ':
-		ControllerPort1 |= 0x40;
+		emu.ControllerPort1 |= 0x40;
 		break;
 		case 'ShiftRight':
-		ControllerPort1 |= 0x20;
+		emu.ControllerPort1 |= 0x20;
 		break;
 		case 'Enter':
-		ControllerPort1 |= 0x10;
+		emu.ControllerPort1 |= 0x10;
 		break;
 		case 'ArrowUp':
-		ControllerPort1 |= 0x08;
+		emu.ControllerPort1 |= 0x08;
 		break;
 		case 'ArrowDown':
-		ControllerPort1 |= 0x04;
+		emu.ControllerPort1 |= 0x04;
 		break;
 		case 'ArrowLeft':
-		ControllerPort1 |= 0x02;
+		emu.ControllerPort1 |= 0x02;
 		break;
 		case 'ArrowRight':
-		ControllerPort1 |= 0x01;
+		emu.ControllerPort1 |= 0x01;
 		break;
 	}
 })
@@ -6943,48 +7001,64 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keyup', function(e) {
 	switch(e.code) {
 		case 'KeyX':
-		ControllerPort1 &= ~0x80;
+		emu.ControllerPort1 &= ~0x80;
 		break;
 		case 'KeyZ':
-		ControllerPort1 &= ~0x40;
+		emu.ControllerPort1 &= ~0x40;
 		break;
 		case 'ShiftRight':
-		ControllerPort1 &= ~0x20;
+		emu.ControllerPort1 &= ~0x20;
 		break;
 		case 'Enter':
-		ControllerPort1 &= ~0x10;
+		emu.ControllerPort1 &= ~0x10;
 		break;
 		case 'ArrowUp':
-		ControllerPort1 &= ~0x08;
+		emu.ControllerPort1 &= ~0x08;
 		break;
 		case 'ArrowDown':
-		ControllerPort1 &= ~0x04;
+		emu.ControllerPort1 &= ~0x04;
 		break;
 		case 'ArrowLeft':
-		ControllerPort1 &= ~0x02;
+		emu.ControllerPort1 &= ~0x02;
 		break;
 		case 'ArrowRight':
-		ControllerPort1 &= ~0x01;
+		emu.ControllerPort1 &= ~0x01;
 		break;
 	}
 })
 
-setInterval(function() {
+const buttons = "ABsSUDLR";
+
+function render(isVBlank) {
 	//_CoreFrameAdvance();
 	
-	if (PPU_DecodeSignal) {
+	if (!isVBlank && vsync) return;
+	
+	if (emu.PPU_DecodeSignal) {
 		cvs.width = 256*8;
 		for (let i = 0; i < img2.data.length; i++) {
-			img2.data[i] = NTSCScreen[i];
+			img2.data[i] = emu.NTSCScreen[i];
 		}
 		
 		ctx.putImageData(img2, 0, 0);
 	} else {
 		cvs.width = 256;
 		for (let i = 0; i < img.data.length; i++) {
-			img.data[i] = Screen[i];
+			img.data[i] = emu.Screen[i];
 		}
 		
 		ctx.putImageData(img, 0, 0);
 	}
-}, 1);
+	
+	let str = '';
+	
+	for (let i = 0; i < 8; i++) str += (emu.ControllerPort1 & (0x80 >> i)) ? buttons[i] : '.';
+	document.getElementById('c1').innerText = str;
+	
+	str = '';
+	
+	for (let i = 0; i < 8; i++) str += (emu.ControllerPort2 & (0x80 >> i)) ? buttons[i] : '.';
+	document.getElementById('c2').innerText = str;
+}
+
+setInterval(render, 1);
