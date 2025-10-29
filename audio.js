@@ -40,6 +40,7 @@ async function setupSound() {
 				
 				if (vsync && emu.FrameAdvance_ReachedVBlank) {
 					emu.FrameAdvance_ReachedVBlank = false;
+					render(true);
 				}
 			}
 			
