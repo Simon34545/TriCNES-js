@@ -702,10 +702,10 @@ class Emulator
 
 									if (this.TAS_ReadingTAS) // This is specifically how I load inputs from a TAS, and has nothing to do with actual NES behavior.
 									{
-											if (this.TAS_InputSequenceIndex < TAS_InputLog.length)
+											if (this.TAS_InputSequenceIndex < this.TAS_InputLog.length)
 											{
-													this.ControllerPort1 = (TAS_InputLog[this.TAS_InputSequenceIndex] & 0xFF);
-													this.ControllerPort2 = ((TAS_InputLog[this.TAS_InputSequenceIndex] & 0xFF00) >> 8);
+													this.ControllerPort1 = (this.TAS_InputLog[this.TAS_InputSequenceIndex] & 0xFF);
+													this.ControllerPort2 = ((this.TAS_InputLog[this.TAS_InputSequenceIndex] & 0xFF00) >> 8);
 											}
 											else // if the TAS has ended, only provide 0 as the inputs.
 											{
@@ -3380,7 +3380,7 @@ class Emulator
 							this.PPUBusDecay[i]--;
 							if(this.PPUBusDecay[i]===0)
 							{
-									this.PPUBus &= DecayBitmask[i];
+									this.PPUBus &= Emulator.DecayBitmask[i];
 							}
 					}
 					i++;
@@ -9318,7 +9318,7 @@ class Emulator
 
 	TAS_ReadingTAS = false;         // if we're reading inputs from a TAS, this will be set.
 	TAS_InputSequenceIndex = 0;  // which index from the TAS input log will be used for this current controller strobe?
-	TAS_InputLog = []; // controller [22222222 11111111]
+	TAS_InputLog = new Uint16Array(); // controller [22222222 11111111]
 	ClockFiltering = false; // If set, TAS_InputSequenceIndex increments every time the controllers are strobed (or clocked, if the controller is held strobing). Otherwise, "latch filtering" is used, incrementing TAS_InputSequenceIndex once a frame.
 	SyncFM2 = false; // This is set if we're running an FM2 TAS, which (due to FCEUX's very incorrect timing of the first frame after power on) I need to start execution on scanline 240, and prevent the vblank flag from being set.
 	Store(Input, Address)
