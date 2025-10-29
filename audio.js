@@ -1,4 +1,7 @@
-const audioContext = new AudioContext({latencyHint: 50/1000, sampleRate: 44100/4});
+const rate = 44100;
+const audioContext = new AudioContext({latencyHint: 50/1000, sampleRate: rate});
+
+let clocksToRun = 0;
 
 let worklet;
 let soundReady = false;
@@ -18,8 +21,11 @@ async function setupSound() {
 	
 	worklet.port.onmessage = function(e) {
 		const t0 = performance.now();
+		clocksToRun += 21477272 / rate;
+		const clocks = Math.floor(clocksToRun);
+		clocksToRun -= clocks;
 		for (let i = 0; i < 128; i++) {
-			for (let j = 0; j < 1948; j++) {
+			for (let j = 0; j < clocks; j++) {
 				_EmulatorCore();
 			}
 			
