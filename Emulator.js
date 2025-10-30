@@ -16,17 +16,17 @@ class Cartridge
 		CHR_Size = 1;       // Header info: how many kb of CHR data does this cartridge have?
 		PRG_SizeMinus1 = 0; // PRG_Size-1; This is frequently used when grabbing data from PRG banks
 
-		CHRRAM = new Uint8Array();       // If this cartridge has character this.RAM, this array is used.
-		UsingCHRRAM = false;    // Header info: CHR this.RAM doesn't exist on all cartridges.
+		CHRRAM = new Uint8Array();       // If this cartridge has character RAM, this array is used.
+		UsingCHRRAM = false;    // Header info: CHR RAM doesn't exist on all cartridges.
 
-		PRGRAM = new Uint8Array();         // PRG this.RAM / Battery backed save this.RAM.
+		PRGRAM = new Uint8Array();         // PRG RAM / Battery backed save RAM.
 
 		constructor(ROM) // Constructor from file path
 		{
 				if (!ROM) {
 					return;
 				}
-				//this.ROM = ROM; // Reads the file from the provided file path, and stores every byte into an array.
+				//ROM = ROM; // Reads the file from the provided file path, and stores every byte into an array.
 
 				// The ines header isn't actually part of the physical cartridge.
 				// Rather, the values of the ines header are manually added to provide extra information to emulators.
@@ -40,19 +40,19 @@ class Cartridge
 
 				this.PRG_SizeMinus1 = (this.PRG_Size - 1); // This value is occasionally used whenever a mapper has a fixed bank from the end of the PRG data, like address $E000 in the MMC3 chip.
 
-				this.UsingCHRRAM = this.CHR_Size === 0; // If CHR_Size === 0, this is using CHR this.RAM
+				this.UsingCHRRAM = this.CHR_Size === 0; // If CHR_Size === 0, this is using CHR RAM
 
 
 				this.PRGROM = new Uint8Array(this.PRG_Size * 0x4000); // 0x4000 bytes of PRG ROM, multiplied by byte 4 of the ines header.
 				this.CHRROM = new Uint8Array(this.CHR_Size * 0x2000); // 0x2000 bytes of CHR ROM, multiplied by byte 5 of the ines header.
-				this.CHRRAM = new Uint8Array(0x2000);            // CHR this.RAM always has 2 kibibytes
+				this.CHRRAM = new Uint8Array(0x2000);            // CHR RAM always has 2 kibibytes
 
 				this.NametableHorizontalMirroring = ((ROM[6] & 1) === 0); // The style in which the nametable is mirrored is part of the ines header.
 
 				for (let i = 0; i < this.PRGROM.length; i++) this.PRGROM[i] = ROM[0x10 + i]; // This sets up the PRG ROM array with the values from the .nes file
 				for (let i = 0; i < this.CHRROM.length; i++) this.CHRROM[i] = ROM[0x10 + this.PRGROM.length + i]; // This sets up the CHR ROM array with the values from the .nes file
 
-				this.PRGRAM = new Uint8Array(0x2000); // PRG this.RAM probably has different lengths depending on the mapper, but this emulator doesn't yet support any mappers in which that length isnt 2 kibibytes.
+				this.PRGRAM = new Uint8Array(0x2000); // PRG RAM probably has different lengths depending on the mapper, but this emulator doesn't yet support any mappers in which that length isnt 2 kibibytes.
 
 				//Name = filepath; // For debugging, it's nice to see the file name sometimes.
 		}
@@ -62,7 +62,7 @@ class Cartridge
 
 		// Mapper stuff
 
-		// I should probably refactor this.
+		// I should probably refactor 
 		// Since each cart can only have 1 mapper, there's no need for every mapper's variables to coexist.
 
 
@@ -128,7 +128,7 @@ class Cartridge
 		Mapper_69_Bank_8 = 0;
 		Mapper_69_Bank_A = 0;
 		Mapper_69_Bank_C = 0;
-		Mapper_69_NametableMirroring = 0; // 0 = Vertical              1 = Horizontal            2 = One this.Screen Mirroring from $2000 ("1ScA")            3 = One this.Screen Mirroring from $2400 ("1ScB")
+		Mapper_69_NametableMirroring = 0; // 0 = Vertical              1 = Horizontal            2 = One Screen Mirroring from $2000 ("1ScA")            3 = One Screen Mirroring from $2400 ("1ScB")
 		Mapper_69_EnableIRQ = false;
 		Mapper_69_EnableIRQCounterDecrement = false;
 		Mapper_69_IRQCounter = 0; // When enabled the 16-bit IRQ counter is decremented once per CPU cycle. When the IRQ counter is decremented from $0000 to $FFFF an IRQ is generated.
@@ -192,7 +192,7 @@ class Emulator
 
 	static NESPal = new Uint8Array([
 			// each triplet of bytes represents the RGB components of a color.
-			// there's 64 colors, but this is also how I implement specific values for the this.PPU's emphasis bits.
+			// there's 64 colors, but this is also how I implement specific values for the PPU's emphasis bits.
 			// default palette:
 			0x65, 0x65, 0x65, 0x00, 0x2A, 0x84, 0x15, 0x13, 0xA2, 0x3A, 0x01, 0x9E, 0x59, 0x00, 0x7A, 0x6A, 0x00, 0x3E, 0x68, 0x08, 0x00, 0x53, 0x1D, 0x00, 0x32, 0x34, 0x00, 0x0D, 0x46, 0x00, 0x00, 0x4F, 0x00, 0x00, 0x4C, 0x09, 0x00, 0x3F, 0x4B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0xAE, 0xAE, 0xAE, 0x17, 0x5F, 0xD6, 0x43, 0x41, 0xFF, 0x75, 0x29, 0xFA, 0x9E, 0x1D, 0xCA, 0xB4, 0x20, 0x7B, 0xB1, 0x33, 0x22, 0x96, 0x4E, 0x00, 0x6A, 0x6C, 0x00, 0x39, 0x84, 0x00, 0x0F, 0x90, 0x00, 0x00, 0x8D, 0x33, 0x00, 0x7B, 0x8C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -248,10 +248,11 @@ class Emulator
 	// when pressing the reset button, this function runs
 	Reset()
 	{
-			// The this.A, this.X, and this.Y registers are unchanged through reset.
+			// The A, X, and Y registers are unchanged through reset.
 			// most flags go unchanged as well, but the I flag is set to 1
 			this.flag_Interrupt = true;
 			// Triangle phase gets reset, though I'm not yet emulating audio.
+			this.sequencer3Position = 0;
 			this.APU_DMC_Output &= 1;
 			// All the bits of $4015 are cleared
 			this.APU_Status_DMCInterrupt = false;
@@ -269,7 +270,7 @@ class Emulator
 			this.APU_LengthCounter_Pulse1 = 0;
 			this.APU_Framecounter = 0; // reset the frame counter
 
-			// this.PPU registers
+			// PPU registers
 			this.PPU_Update2000Delay = 0;
 			this.PPU_Ctrl = 0; // this value is only used for debugging.
 			this.PPUControl_NMIEnabled = false;
@@ -307,7 +308,7 @@ class Emulator
 			this.operationComplete = false;
 			this.DoReset = true;
 			this.PPU_RESET = true;
-			// in theory, the CPU/this.PPU clock would be given random values. Let's just assume no changes.
+			// in theory, the CPU/PPU clock would be given random values. Let's just assume no changes.
 	}
 
 	CPU_Read = false; // DMC DMA Has some specific behavior depending on if the CPU is currently reading or writing. DMA Halting fails / DMA $2007 bug.
@@ -397,7 +398,7 @@ class Emulator
 			// If multiple counters read 0 at the same time, there's an order of events.
 			// The order of events:
 			// CPU
-			// this.PPU
+			// PPU
 			// APU
 
 
@@ -430,7 +431,7 @@ class Emulator
 					{
 							this.DecayPPUDataBus();
 					}
-					this.PPUClock = 4; // there is 1 this.PPU cycle for every 12 master clock cycles
+					this.PPUClock = 4; // there is 1 PPU cycle for every 12 master clock cycles
 			}
 			if (this.CPUClock === 5)
 			{
@@ -697,7 +698,7 @@ class Emulator
 									this.APU_ControllerPortsStrobed = true;
 									// this will be reset to false if:
 									// 1.) the controllers are un-strobed. Ready for the next strobe.
-									// 2.) the controller ports are read, while still strobed. This allows data to be streamed in through the this.A button.
+									// 2.) the controller ports are read, while still strobed. This allows data to be streamed in through the A button.
 
 
 									if (this.TAS_ReadingTAS) // This is specifically how I load inputs from a TAS, and has nothing to do with actual NES behavior.
@@ -744,14 +745,14 @@ class Emulator
 							this.DPCM_Up = (this.APU_DMC_Shifter & 1) === 1;
 							if (this.DPCM_Up)
 							{
-									if (this.APU_DMC_Output <= 125) // this is 7 bit, and cannot go above 127
+									if (this.APU_DMC_Output <= 125 && !this.APU_Silent) // this is 7 bit, and cannot go above 127
 									{
 											this.APU_DMC_Output += 2;
 									}
 							}
 							else
 							{
-									if (this.APU_DMC_Output >= 2) // this is 7 bit, and cannot go below 0
+									if (this.APU_DMC_Output >= 2 && !this.APU_Silent) // this is 7 bit, and cannot go below 0
 									{
 											this.APU_DMC_Output -= 2;
 									}
@@ -913,6 +914,9 @@ class Emulator
 
 
 			// perform quarter frame / half frame stuff
+			
+			this.sweep1Target = Math.max(0, this.timer1Period + (this.timer1Period >> this.sweep1Shift) * (this.sweep1Negate ? -1 : 1) - this.sweep1Negate);
+			this.sweep2Target = Math.max(0, this.timer2Period + (this.timer2Period >> this.sweep2Shift) * (this.sweep2Negate ? -1 : 1));
 
 			if (this.APU_QuarterFrameClock)
 			{
@@ -1060,9 +1064,6 @@ class Emulator
 			}
 			
 			// extra stuff
-			
-			this.sweep1Target = Math.max(0, this.timer1Period + (this.timer1Period >> this.sweep1Shift) * (this.sweep1Negate ? -1 : 1) - this.sweep1Negate);
-			this.sweep2Target = Math.max(0, this.timer2Period + (this.timer2Period >> this.sweep2Shift) * (this.sweep2Negate ? -1 : 1));
 				
 			if (this.timer3Counter) {
 				this.timer3Counter--;
@@ -1224,7 +1225,7 @@ class Emulator
 	{
 
 			// When writing to ppu registers, there's a slight delay before resulting action is taken.
-			// This delay can vary depending on the CPU/this.PPU alignment.
+			// This delay can vary depending on the CPU/PPU alignment.
 
 			// For instance, after writing to $2006, this delay value will either be 4 or 5.
 			this.CopyV = false;
@@ -1235,7 +1236,7 @@ class Emulator
 					{
 							let temp_Prev_V = this.PPU_ReadWriteAddress;
 							this.CopyV = true;
-							this.PPU_ReadWriteAddress = this.PPU_TempVRAMAddress; // the this.PPU_ReadWriteAddress is updated!
+							this.PPU_ReadWriteAddress = this.PPU_TempVRAMAddress; // the PPU_ReadWriteAddress is updated!
 							this.PPU_AddressBus = this.PPU_ReadWriteAddress; // This value is the same thing.
 							if ((temp_Prev_V & 0x3FFF) >= 0x3F00 && (this.PPU_AddressBus & 0x3FFF) < 0x3F00) // Palette corruption check. Are we leaving Palette ram?
 							{
@@ -1258,7 +1259,7 @@ class Emulator
 							if (!this.PPUAddrLatch)
 							{
 									// if this is the first write to $2005
-									this.PPU_FineXScroll = (this.PPU_Update2005Value & 7); // This updates the fine this.X scroll
+									this.PPU_FineXScroll = (this.PPU_Update2005Value & 7); // This updates the fine X scroll
 									this.PPU_TempVRAMAddress = ((this.PPU_TempVRAMAddress & 0b0111111111100000) | (this.PPU_Update2005Value >> 3)); // as well as changing the 't' register.
 							}
 							else
@@ -1291,18 +1292,18 @@ class Emulator
 			{
 					// This info was not determined by using visualNES or visual2c02, and is entirely "speculation" based on behavior I was able to detect on my console through read-modify-write instructions to address $2007.
 
-					// reading/writing to address $2007 will set the state machine value to 0. Increment it every this.PPU Cycle
+					// reading/writing to address $2007 will set the state machine value to 0. Increment it every PPU Cycle
 					// There's a handful of unexpected behavior if this state machine is currently happening when another read/write to $2007 occurs
 					// in other words, if 2 consecutive CPU cycles access $2007 there's unexpected behavior.
 					// that behavior is handled here.
 
 					// NOTE: This behavior matches my console, though different revisions have shown different behaviors.
 
-					// TODO: Something is going wrong with the timing of STA $2007, this.X (where this.X = 0). Gotta figure that out, and probably re-do this entire function. I have no idea how inaccurate this is. 
+					// TODO: Something is going wrong with the timing of STA $2007, X (where X = 0). Gotta figure that out, and probably re-do this entire function. I have no idea how inaccurate this is. 
 
 					if (this.PPU_Data_StateMachine === 1) // 1 ppu cycle after the read occurs
 					{
-							if (this.PPU_Data_SateMachine_Read && !this.PPU_Data_StateMachine_UpdateVRAMBufferLate) // if this is a read, and this.PPU_Data_StateMachine_UpdateVRAMBufferLate is not set: (I think this is just for alignments 2 and 3?)
+							if (this.PPU_Data_SateMachine_Read && !this.PPU_Data_StateMachine_UpdateVRAMBufferLate) // if this is a read, and PPU_Data_StateMachine_UpdateVRAMBufferLate is not set: (I think this is just for alignments 2 and 3?)
 							{
 									if (this.PPU_ReadWriteAddress >= 0x3F00) // If the read/write address is where the Palette info is...
 									{
@@ -1335,13 +1336,13 @@ class Emulator
 									// the mystery write
 
 									// Here's how the mystery write behaves:
-									// Suppose we're writing a value of $ZZ to address $2007, and the this.PPU Read/Write address is at address $YYXX
+									// Suppose we're writing a value of $ZZ to address $2007, and the PPU Read/Write address is at address $YYXX
 									// The mystery write will store $ZZ at address $YYZZ
 									// In addition to that, $XX (The low byte of the read/write address) is also written to $YYXX
 
 									// This only occurs if there's 2 consecutive CPU cycles that access $2007
 
-									// The mystery writes cannot write to palettes. Instead, write the modified value read from palette this.RAM to the following address.
+									// The mystery writes cannot write to palettes. Instead, write the modified value read from palette RAM to the following address.
 									if (this.PPU_VRAM_MysteryAddress >= 0x3F00)
 									{
 											
@@ -1351,17 +1352,17 @@ class Emulator
 									}
 									else
 									{
-											// As far as I know, the this.PPU can only make 1 write per cycle... The exact timing here might be wrong, but the end result of the behavior emulated here seems to match my console.
+											// As far as I know, the PPU can only make 1 write per cycle... The exact timing here might be wrong, but the end result of the behavior emulated here seems to match my console.
 											this.StorePPUData((this.PPU_VRAM_MysteryAddress), this.PPU_VRAM_MysteryAddress & 0xFF);
 											this.StorePPUData((this.PPU_ReadWriteAddress), this.PPU_ReadWriteAddress & 0xFF);
 											this.PPU_AddressBus = this.PPU_ReadWriteAddress;
 									}
 
-									// That second write can be overwritten in the next steps depending on the CPU/this.PPU alignment.
+									// That second write can be overwritten in the next steps depending on the CPU/PPU alignment.
 									// My current understanding is: if the mystery write happens, that other extra write happens too.
 									// but again, I'm not certain on the timing. Do these actually both happen on the same cycle?
 							}
-							// the this.PPU Read/Write address is incremented 1 cycle after the write occurs.
+							// the PPU Read/Write address is incremented 1 cycle after the write occurs.
 					}
 					if (this.PPU_Data_StateMachine === 4) // 4 ppu cycles after a read or  1 ppu cycle after a write occurs
 					{
@@ -1380,7 +1381,7 @@ class Emulator
 									}
 							}
 							// We're getting deep into alignment specific state machine shenanigans.
-							// If the state machine was interrupted with a read cycle, and the CPU/this.PPU is not in alignment 0:
+							// If the state machine was interrupted with a read cycle, and the CPU/PPU is not in alignment 0:
 							if (this.PPU_Data_StateMachine_UpdateVRAMAddressEarly)
 							{
 									this.PPU_Data_StateMachine_UpdateVRAMAddressEarly = false;
@@ -1416,7 +1417,7 @@ class Emulator
 									{
 											if ((this.CPUClock & 3) !== 0) // This write only occurs on phases 1, 2, and 3
 											{
-													// this.Store the expected value at the *recently modified* Read/Write address.
+													// Store the expected value at the *recently modified* Read/Write address.
 													this.StorePPUData(this.PPU_AddressBus, this.PPU_Data_StateMachine_InputValue);
 											}
 									}
@@ -1424,7 +1425,7 @@ class Emulator
 							this.PPU_Data_SateMachine_Read = this.PPU_Data_SateMachine_Read_Delayed;
 							this.PPU_Data_StateMachine_PerformMysteryWrite = false;
 					}
-					// And that's it for the this.PPU $2007 State Machine.
+					// And that's it for the PPU $2007 State Machine.
 					this.PPU_Data_StateMachine++;    // this stops counting up at 8.
 			}
 			if (this.PPU_Data_StateMachine === 8)
@@ -1449,22 +1450,22 @@ class Emulator
 			{
 					if ((this.PPU_Mask_ShowBackground || this.PPU_Mask_ShowSprites))
 					{
-							if (this.PPU_Dot === 256) //The this.Y scroll is incremented on dot 256.
+							if (this.PPU_Dot === 256) //The Y scroll is incremented on dot 256.
 							{
 									this.PPU_IncrementScrollY();
 							}
-							else if (this.PPU_Dot === 257) //The this.X scroll is reset on dot 257.
+							else if (this.PPU_Dot === 257) //The X scroll is reset on dot 257.
 							{
 									this.PPU_ResetXScroll();
 							}
 							if (this.PPU_Dot >= 280 && this.PPU_Dot <= 304 && this.PPU_Scanline === 261) //numbers from the nesdev wiki
 							{
-									this.PPU_ResetYScroll(); //The this.Y scroll is reset on every dot from 280 through 304 on the pre-render scanline.
+									this.PPU_ResetYScroll(); //The Y scroll is reset on every dot from 280 through 304 on the pre-render scanline.
 							}
 					}
 			}
 
-			// Increment the this.PPU dot
+			// Increment the PPU dot
 			this.PPU_Dot++;
 			if (this.PPU_Dot > 340) // There are only 341 dots per scanline
 			{
@@ -1482,7 +1483,7 @@ class Emulator
 			{
 					if (this.PPU_Dot === 0)
 					{
-							// If Address $2002 is read during the next ppu cycle, the this.PPU Status flags aren't set.
+							// If Address $2002 is read during the next ppu cycle, the PPU Status flags aren't set.
 							// These variables are used to check if Address $2002 is read during the next ppu cycle.
 							// I usually refer to this as the $2002 race condition.
 							// The more proper term would be "Vblank/NMI flag supression".
@@ -1500,13 +1501,13 @@ class Emulator
 					}
 					if (this.PPU_Dot === 1)
 					{
-							if (this.PPU_PendingVBlank) // If a read to $2002 did not happen this cycle. (Reading $2002 sets this.PPU_PendingVBlank to false)
+							if (this.PPU_PendingVBlank) // If a read to $2002 did not happen this cycle. (Reading $2002 sets PPU_PendingVBlank to false)
 							{
-									// Huzzah! The this.status flags are set.
+									// Huzzah! The status flags are set.
 									this.PPUStatus_VBlank = true;
-									this.PPUStatus_VBlank_Delayed = true; // There are a few extra ppu cycles after this.PPUStatus_VBlank is cleared in which writing to $2000 during Vblank in order to trigger an NMI can still occur.
+									this.PPUStatus_VBlank_Delayed = true; // There are a few extra ppu cycles after PPUStatus_VBlank is cleared in which writing to $2000 during Vblank in order to trigger an NMI can still occur.
 									this.PPU_PendingVBlank = false; // clear this flag
-																						 // if this.PPUControl_NMIEnabled is set to true, then the NMI edge detector will detect this at the end of the CPU cycle!
+																						 // if PPUControl_NMIEnabled is set to true, then the NMI edge detector will detect this at the end of the CPU cycle!
 									this.PPU_RESET = false;
 							}
 							// else, address $2002 was read on this ppu cycle. no VBlank flag.
@@ -1514,7 +1515,7 @@ class Emulator
 							this.FrameAdvance_ReachedVBlank = true; // Emulator specific stuff. Used for frame advancing to detect the frame has ended, and nothing else.
 							if (!this.ClockFiltering) // specifically for TASing stuff. Increment the index for the input log.
 							{
-									// If this was using "SubFrame", this.TAS_InputSequenceIndex is incremented evnever the controller is strobed.
+									// If this was using "SubFrame", TAS_InputSequenceIndex is incremented evnever the controller is strobed.
 									// Instead, I increment the index here at the start of vblank.
 									this.TAS_InputSequenceIndex++;
 							}
@@ -1547,7 +1548,7 @@ class Emulator
 
 			// Right now, I'm only emulating MMC3's IRQ counter in this function.
 			this.PPU_MapperSpecificFunctions();
-			this.PPU_ADDR_Prev = this.PPU_AddressBus; // Record the value of the ppu address bus. This is used in the this.PPU_MapperSpecificFunctions(), so if this changes between here and next ppu cycle, we'll know.
+			this.PPU_ADDR_Prev = this.PPU_AddressBus; // Record the value of the ppu address bus. This is used in the PPU_MapperSpecificFunctions(), so if this changes between here and next ppu cycle, we'll know.
 			if (this.PPU_OddFrame && (this.PPU_Mask_ShowBackground || this.PPU_Mask_ShowSprites))
 			{
 					if (this.PPU_Scanline === 261 && this.PPU_Dot === 340)
@@ -1583,7 +1584,7 @@ class Emulator
 					// Sprite evaluation
 					if (this.PPU_Scanline < 241 || this.PPU_Scanline === 261)
 					{
-							this.PPU_Render_SpriteEvaluation(); // fill in secondary this.OAM, and set up various arrays of sprite properties.
+							this.PPU_Render_SpriteEvaluation(); // fill in secondary OAM, and set up various arrays of sprite properties.
 					}
 			}
 			if ((this.MasterClock & 3) === 2)
@@ -1605,7 +1606,7 @@ class Emulator
 							this.PPU_Mask_ShowBackground = (this.PPU_Update2001Value & 0x08) !== 0;
 							this.PPU_Mask_ShowSprites = (this.PPU_Update2001Value & 0x10) !== 0;
 
-							this.PPU_Mask_ShowBackground_Instant = this.PPU_Mask_ShowBackground; // now that the this.PPU has updated, this.OAM evaluation will also recognize the change
+							this.PPU_Mask_ShowBackground_Instant = this.PPU_Mask_ShowBackground; // now that the PPU has updated, OAM evaluation will also recognize the change
 							this.PPU_Mask_ShowSprites_Instant = this.PPU_Mask_ShowSprites;
 					}
 			}
@@ -1618,7 +1619,7 @@ class Emulator
 							{
 									if ((this.PPU_Scanline < 240 || this.PPU_Scanline === 261)) // if this is the pre-render line, or any line before vblank
 									{
-											if (!this.PPU_PendingOAMCorruption) // due to this.OAM corruption occuring inside this.OAM evaluation before this even occurs, make sure this.OAM isn't already corrupt
+											if (!this.PPU_PendingOAMCorruption) // due to OAM corruption occuring inside OAM evaluation before this even occurs, make sure OAM isn't already corrupt
 											{
 													this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank = true;
 											}
@@ -2013,8 +2014,8 @@ class Emulator
 	// If OAM corruption is pending, it occurs on the first rendered dot.
 	CorruptOAM()
 	{
-			// basically 8 entries of this.OAM are getting replaced (this is considered a single "row" of this.OAM) 
-			// this.PPU_OAMCorruptionIndex is the row that gets corrupted.
+			// basically 8 entries of OAM are getting replaced (this is considered a single "row" of OAM) 
+			// PPU_OAMCorruptionIndex is the row that gets corrupted.
 			if(this.PPU_OAMCorruptionIndex === 0x20)
 			{
 					this.PPU_OAMCorruptionIndex = 0;
@@ -2046,7 +2047,7 @@ class Emulator
 			}
 			if ((this.PPU_Mask_ShowBackground_Instant || this.PPU_Mask_ShowSprites_Instant))
 			{
-					if (this.PPU_PendingOAMCorruption) // this.OAM corruption occurs on the visible dot after rendering was enabled. It also can happen on the pre-render line.
+					if (this.PPU_PendingOAMCorruption) // OAM corruption occurs on the visible dot after rendering was enabled. It also can happen on the pre-render line.
 					{
 							this.PPU_PendingOAMCorruption = false;
 							if (!this.PPU_OAMCorruptionRenderingEnabledOutOfVBlank)
@@ -2057,10 +2058,10 @@ class Emulator
 					}
 			}
 
-			if ((this.PPU_Dot >= 0 && this.PPU_Dot <= 64)) // Dots 1 through 64, not on the pre-render line. (and also dot 0 for this.OAM corruption purposes)
+			if ((this.PPU_Dot >= 0 && this.PPU_Dot <= 64)) // Dots 1 through 64, not on the pre-render line. (and also dot 0 for OAM corruption purposes)
 			{
 					
-					// this step is clearing secondary this.OAM, and writing FF to each byte in the array.
+					// this step is clearing secondary OAM, and writing FF to each byte in the array.
 					if ((this.PPU_Dot & 1) === 1)
 					{ //odd cycles
 							if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed))
@@ -2071,12 +2072,12 @@ class Emulator
 									}
 									else
 									{
-											this.PPU_SpriteEvaluationTemp = this.ReadOAM(); // During these cycles, this.OAM is hard-coded to read $FF.
+											this.PPU_SpriteEvaluationTemp = this.ReadOAM(); // During these cycles, OAM is hard-coded to read $FF.
 									}
 									if (this.PPU_Dot === 1)
 									{
-											this.SecondaryOAMAddress = 0; // if this is dot 1, reset the secondary this.OAM address
-											this.SecondaryOAMFull = false;// also reset the flag that checks of secondary this.OAM is full.
+											this.SecondaryOAMAddress = 0; // if this is dot 1, reset the secondary OAM address
+											this.SecondaryOAMFull = false;// also reset the flag that checks of secondary OAM is full.
 																							 // in preperation for the next section, let's clear these flags too
 											this.SpriteEvaluationTick = 0;
 											this.OAMAddressOverflowedDuringSpriteEvaluation = false;
@@ -2098,7 +2099,7 @@ class Emulator
 									{
 											if (!SpriteEval_ReadOnly)
 											{
-													this.SecondaryOAM[this.SecondaryOAMAddress] = this.PPU_SpriteEvaluationTemp; // store FF in secondary this.OAM
+													this.SecondaryOAM[this.SecondaryOAMAddress] = this.PPU_SpriteEvaluationTemp; // store FF in secondary OAM
 											}
 											if (this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank)
 											{
@@ -2108,8 +2109,8 @@ class Emulator
 													this.PPU_OAMCorruptionIndex = this.SecondaryOAMAddress; // this value will be used when rendering is re-enabled and the corruption occurs
 											}
 
-											this.SecondaryOAMAddress++;  // increment this value so on the next even cycle, we write to the next this.SecondaryOAM address.
-											this.SecondaryOAMAddress &= 0x1F;  // keep the secondary this.OAM address in-bounds
+											this.SecondaryOAMAddress++;  // increment this value so on the next even cycle, we write to the next SecondaryOAM address.
+											this.SecondaryOAMAddress &= 0x1F;  // keep the secondary OAM address in-bounds
 
 											if (this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank_Instant && this.PPU_Dot === 64)
 											{
@@ -2131,8 +2132,8 @@ class Emulator
 							}
 							else
 							{
-									this.SecondaryOAMAddress++;  // increment this value so on the next even cycle, we write to the next this.SecondaryOAM address.
-									this.SecondaryOAMAddress &= 0x1F;  // keep the secondary this.OAM address in-bounds
+									this.SecondaryOAMAddress++;  // increment this value so on the next even cycle, we write to the next SecondaryOAM address.
+									this.SecondaryOAMAddress &= 0x1F;  // keep the secondary OAM address in-bounds
 							}                    
 					}
 			}
@@ -2143,13 +2144,13 @@ class Emulator
 							if ((this.PPU_Dot & 1) === 1)
 							{ //odd cycles
 									let PrevSpriteEvalTemp = this.PPU_SpriteEvaluationTemp;
-									this.PPU_SpriteEvaluationTemp = this.OAM[this.PPUOAMAddress]; // read from this.OAM
+									this.PPU_SpriteEvaluationTemp = this.OAM[this.PPUOAMAddress]; // read from OAM
 									if ((this.PPUOAMAddress & 3) === 2)
 									{
-											this.PPU_SpriteEvaluationTemp &= 0xE7; // this.OAM address 02, 06, 0A, 0E, 12... are missing bits 3 and 4.
+											this.PPU_SpriteEvaluationTemp &= 0xE7; // OAM address 02, 06, 0A, 0E, 12... are missing bits 3 and 4.
 									}
 
-									// If rendering was disabled *this* cycle (the odd cycle) then the even cycle will run normally, and the *next odd cycle* will have the this.OAM address increment. Presumably, that's when we record secondOAMAddr.
+									// If rendering was disabled *this* cycle (the odd cycle) then the even cycle will run normally, and the *next odd cycle* will have the OAM address increment. Presumably, that's when we record secondOAMAddr.
 									if (this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank_Instant)
 									{
 											this.PPU_OAMEvaluationCorruptionOddCycle = false;
@@ -2167,8 +2168,8 @@ class Emulator
 
 									if (!this.OAMAddressOverflowedDuringSpriteEvaluation)
 									{
-											let PreIncVal = this.PPUOAMAddress; // for checking if this.PPUOAMAddress overflows
-											if (!this.SecondaryOAMFull && !SpriteEval_ReadOnly) // If secondary this.OAM is not yet full,
+											let PreIncVal = this.PPUOAMAddress; // for checking if PPUOAMAddress overflows
+											if (!this.SecondaryOAMFull && !SpriteEval_ReadOnly) // If secondary OAM is not yet full,
 											{
 													this.SecondaryOAM[this.SecondaryOAMAddress] = this.PPU_SpriteEvaluationTemp; // store this value at the secondary oam address.
 											}
@@ -2188,24 +2189,24 @@ class Emulator
 																			{
 																					this.PPUOAMAddress = (this.PPUOAMAddress + 1) & 0xFF; // +1
 																			}
-																			this.SecondaryOAMAddress = (this.SecondaryOAMAddress + 1) & 0xFF; // increment this for the next write to secondary this.OAM
+																			this.SecondaryOAMAddress = (this.SecondaryOAMAddress + 1) & 0xFF; // increment this for the next write to secondary OAM
 																	}
-																	if (!this.SecondaryOAMFull) // if secondary this.OAM is not full
+																	if (!this.SecondaryOAMFull) // if secondary OAM is not full
 																	{
-																			this.SecondaryOAMAddress &= 0x1F; // keep the secondary this.OAM address in-bounds
-																			if (this.SecondaryOAMAddress === 0) // If we've overflowed the secondary this.OAM address
+																			this.SecondaryOAMAddress &= 0x1F; // keep the secondary OAM address in-bounds
+																			if (this.SecondaryOAMAddress === 0) // If we've overflowed the secondary OAM address
 																			{
-																					this.SecondaryOAMFull = true; // secondary this.OAM is now full.
+																					this.SecondaryOAMFull = true; // secondary OAM is now full.
 																			}
 																	}
-																	// Sprite zero hits actually have nothing to do with reading the object at this.OAM index 0. Rather, if an object is within range of the scanline on dot 66.
-																	// typically, the object processed on dot 66 is this.OAM[0], though it's possible using precisely timed writes to $2003 to have this.PPUOAMAddress start processing here from a different value.
+																	// Sprite zero hits actually have nothing to do with reading the object at OAM index 0. Rather, if an object is within range of the scanline on dot 66.
+																	// typically, the object processed on dot 66 is OAM[0], though it's possible using precisely timed writes to $2003 to have PPUOAMAddress start processing here from a different value.
 																	if (this.PPU_Dot === 66)
 																	{
 																			this.PPU_NextScanlineContainsSpriteZero = true; // this value will be transferred to PPU_PreviousScanlineContainsSpriteZero at the end of the scanline, and that variable is used in sp 0 hit detection.
 																	}
 															}
-															else // if secondary this.OAM is full, yet another object is on this scanline
+															else // if secondary OAM is full, yet another object is on this scanline
 															{
 																	this.PPUStatus_SpriteOverflow = true; // set the sprite overflow flag
 															}
@@ -2227,13 +2228,13 @@ class Emulator
 																	{
 																			if ((this.PPUOAMAddress & 0x3) === 3)
 																			{
-																					this.PPUOAMAddress++; // this.A real hardware bug.
+																					this.PPUOAMAddress++; // A real hardware bug.
 																					this.PPUOAMAddress &= 0xFF;
 																			}
 																			else
 																			{
 																					this.PPUOAMAddress += 4; // +4
-																					this.PPUOAMAddress++; // this.A real hardware bug.
+																					this.PPUOAMAddress++; // A real hardware bug.
 																					this.PPUOAMAddress &= 0xFF;
 																			}
 																	}
@@ -2247,10 +2248,10 @@ class Emulator
 											}
 											else // ticks 1, 2, or 3
 											{
-													if (this.SpriteEvaluationTick === 3) // tick 3: this.X position.
+													if (this.SpriteEvaluationTick === 3) // tick 3: X position.
 													{
 															this.PPU_OAMEvaluationObjectInRange = false;
-															// this.OAM this.X coordinate.
+															// OAM X coordinate.
 															// This also runs the "vertical in range check", though typically the result doesn't matter.
 															if (this.PPU_Scanline - this.PPU_SpriteEvaluationTemp >= 0 && this.PPU_Scanline - this.PPU_SpriteEvaluationTemp < (this.PPU_Spritex16 ? 16 : 8))
 															{
@@ -2285,7 +2286,7 @@ class Emulator
 																	}
 															}
 													}
-													else // ticks 1 and 2 don't make any checks. Only increment the this.OAM address.
+													else // ticks 1 and 2 don't make any checks. Only increment the OAM address.
 													{
 															if (!this.OamCorruptedOnOddCycle && !SpriteEval_ReadOnly)
 															{
@@ -2294,13 +2295,13 @@ class Emulator
 													}
 													this.SpriteEvaluationTick++; // increment the tick for next even ppu cycle.
 													this.SpriteEvaluationTick &= 3; // and reset the tick to 0 if it reaches 4.
-													if (!this.SecondaryOAMFull && !SpriteEval_ReadOnly) // if secondary this.OAM is not full
+													if (!this.SecondaryOAMFull && !SpriteEval_ReadOnly) // if secondary OAM is not full
 													{
-															this.SecondaryOAMAddress++; // increment the secondary this.OAM address.
-															this.SecondaryOAMAddress &= 0x1F; // keep the secondary this.OAM address in-bounds
-															if (this.SecondaryOAMAddress === 0) // If we've overflowed the secondary this.OAM address
+															this.SecondaryOAMAddress++; // increment the secondary OAM address.
+															this.SecondaryOAMAddress &= 0x1F; // keep the secondary OAM address in-bounds
+															if (this.SecondaryOAMAddress === 0) // If we've overflowed the secondary OAM address
 															{
-																	this.SecondaryOAMFull = true; // secondary this.OAM is now full.
+																	this.SecondaryOAMFull = true; // secondary OAM is now full.
 															}
 													}
 											}
@@ -2312,18 +2313,18 @@ class Emulator
 											}
 									}
 									else
-									{   // this.OAM Address Overflowerd During Sprite Evaluation
-											// fail to write to this.SecondaryOAM
+									{   // OAM Address Overflowerd During Sprite Evaluation
+											// fail to write to SecondaryOAM
 											// boo womp.
 
-											// also update the this.PPUOAMAddress.
+											// also update the PPUOAMAddress.
 											if (!this.OamCorruptedOnOddCycle && !SpriteEval_ReadOnly)
 											{
 													this.PPUOAMAddress += 4; // +4
 													this.PPUOAMAddress &= 0xFC; // also mask away the lower 2 bits
 											}
 									}
-									if (this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank_Instant && !this.PPU_OAMEvaluationCorruptionOddCycle) // if we just disabled rendering mid this.OAM evaluation, the address is incremented yet again.
+									if (this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank_Instant && !this.PPU_OAMEvaluationCorruptionOddCycle) // if we just disabled rendering mid OAM evaluation, the address is incremented yet again.
 									{
 											this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank = false;
 											this.PPU_OAMCorruptionRenderingDisabledOutOfVBlank_Instant = false;
@@ -2379,7 +2380,7 @@ class Emulator
 					switch (this.SpriteEvaluationTick)
 					{
 							// So each scanline can only have up to 8 sprites.
-							// Each sprite has a this.Y position, Pattern, Attributes, and this.X position.
+							// Each sprite has a Y position, Pattern, Attributes, and X position.
 							// So there's an 8-index-long array for each of those.
 							// Each index in the array is for a different sprite.
 
@@ -2394,60 +2395,60 @@ class Emulator
 							// case 7 then leads back to case 0.
 
 
-							case 0: // this.Y position         dot 257, (+8), (+16) ...
+							case 0: // Y position         dot 257, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed)) // if rendering has been enabled for at least 1 cycle.
 									{
-											// set this object's this.Y position in the array
+											// set this object's Y position in the array
 											this.PPU_SpriteYposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
-											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable this.Fetch
+											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable Fetch
 									}
-									this.SecondaryOAMAddress++; // and increment the Secondary this.OAM address for next cycle
+									this.SecondaryOAMAddress++; // and increment the Secondary OAM address for next cycle
 									break;
 							case 1: // Pattern            dot 258, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed)) // if rendering has been enabled for at least 1 cycle.
 									{
 											// set this object's pattern in the array
 											this.PPU_SpritePattern[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
-											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable this.Fetch
+											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable Fetch
 									}
-									this.SecondaryOAMAddress++; // and increment the Secondary this.OAM address for next cycle
+									this.SecondaryOAMAddress++; // and increment the Secondary OAM address for next cycle
 									break;
 							case 2: // Attribute          dot 259, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed)) // if rendering has been enabled for at least 1 cycle.
 									{
 											// set this object's attribute in the array
 											this.PPU_SpriteAttribute[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
-											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable this.Fetch
+											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable Fetch
 									}
-									this.SecondaryOAMAddress++; // and increment the Secondary this.OAM address for next cycle
+									this.SecondaryOAMAddress++; // and increment the Secondary OAM address for next cycle
 									break;
-							case 3: // this.X position         dot 260, (+8), (+16) ...
+							case 3: // X position         dot 260, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed)) // if rendering has been enabled for at least 1 cycle.
 									{
-											// set this object's this.X position in the array
+											// set this object's X position in the array
 											this.PPU_SpriteXposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
-											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable this.Fetch
+											this.PPU_Render_ShiftRegistersAndBitPlanes(); // Dummy Nametable Fetch
 									}
-									// notably, the secondary this.OAM address does not get incremented until case 7
+									// notably, the secondary OAM address does not get incremented until case 7
 									break;
-							case 4: // this.X position (again) dot 261, (+8), (+16) ...
+							case 4: // X position (again) dot 261, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed)) // if rendering has been enabled for at least 1 cycle.
 									{
-											// set this object's this.X position in the array... again.
+											// set this object's X position in the array... again.
 											this.PPU_SpriteXposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
-											// But also: Find the this.PPU address of this sprite's graphical data inside the Pattern Tables.
+											// But also: Find the PPU address of this sprite's graphical data inside the Pattern Tables.
 											this.PPU_SpriteEvaluation_GetSpriteAddress((this.SecondaryOAMAddress >> 2));
 									}
 
 									break;
-							case 5: // this.X position (again)  dot 262, (+8), (+16) ...
+							case 5: // X position (again)  dot 262, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed)) // if rendering has been enabled for at least 1 cycle.
 									{
-											// set this object's this.X position in the array... again.
+											// set this object's X position in the array... again.
 											this.PPU_SpriteXposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
 											// but also: set up the bit plane shift register.
 											this.PPU_SpritePatternL = this.FetchPPU(this.PPU_AddressBus);
-											if (((this.PPU_SpriteAttribute[this.SecondaryOAMAddress >> 2] >> 6) & 1) === 1) // Attributes are set up to flip this.X
+											if (((this.PPU_SpriteAttribute[this.SecondaryOAMAddress >> 2] >> 6) & 1) === 1) // Attributes are set up to flip X
 											{
 													this.PPU_SpritePatternL = this.Flip(this.PPU_SpritePatternL);
 											}
@@ -2462,29 +2463,29 @@ class Emulator
 									}
 
 									break;
-							case 6: // this.X position (again)  dot 263, (+8), (+16) ...
+							case 6: // X position (again)  dot 263, (+8), (+16) ...
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed))
 									{
-											// set this object's this.X position in the array... again.
+											// set this object's X position in the array... again.
 											this.PPU_SpriteXposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress];
-											// but also: add 8 to the this.PPU address. The other bit plane is 8 addresses away.
+											// but also: add 8 to the PPU address. The other bit plane is 8 addresses away.
 											this.PPU_AddressBus += 8; // at this point, the address couldn't possibly overflow, so there's no need to worry about that.
 									}
 
 									break;
 
-							case 7: // this.X position (again)  dot 264, (+8), (+16) ...
+							case 7: // X position (again)  dot 264, (+8), (+16) ...
 									if (this.PPU_Scanline > 256)
 									{
 
 									}
 									if ((this.PPU_Mask_ShowBackground_Delayed || this.PPU_Mask_ShowSprites_Delayed))
 									{
-											// set this object's this.X position in the array... again.
-											this.PPU_SpriteXposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress]; // read this.X pos again
+											// set this object's X position in the array... again.
+											this.PPU_SpriteXposition[this.SecondaryOAMAddress >> 2] = this.SecondaryOAM[this.SecondaryOAMAddress]; // read X pos again
 											// but also: set up the second bit plane
 											this.PPU_SpritePatternH = this.FetchPPU(this.PPU_AddressBus);
-											if (((this.PPU_SpriteAttribute[this.SecondaryOAMAddress >> 2] >> 6) & 1) === 1) // Attributes are set up to flip this.X
+											if (((this.PPU_SpriteAttribute[this.SecondaryOAMAddress >> 2] >> 6) & 1) === 1) // Attributes are set up to flip X
 											{
 													this.PPU_SpritePatternH = this.Flip(this.PPU_SpritePatternH);
 											}
@@ -2497,11 +2498,11 @@ class Emulator
 											this.PPU_SpriteShiftRegisterH[this.SecondaryOAMAddress >> 2] = 0; // clear the value in this shift register if this object isn't in range.
 									}
 
-									this.SecondaryOAMAddress++; // and increment the Secondary this.OAM address for next cycle
+									this.SecondaryOAMAddress++; // and increment the Secondary OAM address for next cycle
 
 									break;
 					}
-					this.SecondaryOAMAddress &= 0x1F; // keep the secondary this.OAM address in-bounds
+					this.SecondaryOAMAddress &= 0x1F; // keep the secondary OAM address in-bounds
 											
 					this.SpriteEvaluationTick++; // increment the tick, so next cycle uses the following case in the switch statement
 					this.SpriteEvaluationTick &= 7; // and reset at 8
@@ -2546,35 +2547,35 @@ class Emulator
 
 	PPU_SpriteEvaluation_GetSpriteAddress(SecondOAMSlot)
 	{
-			// this.PPU_PatternSelect_Sprites is set by writing to bit 3 of address $2000
+			// PPU_PatternSelect_Sprites is set by writing to bit 3 of address $2000
 
 			if (!this.PPU_Spritex16) //8x8 sprites
 			{
 					// The address is $0000 or $1000 depending on the nametable.
-					// plus the pattern value from this.OAM * 16
+					// plus the pattern value from OAM * 16
 					// plus the number of scanlines from the top of the object.
-					// if the attributes are set to flip this.Y, it's 7 - the number of scanlines from the top of the object.
-					if (((this.PPU_SpriteAttribute[SecondOAMSlot] >> 7) & 1) === 0) // Attributes are not set up to flip this.Y
+					// if the attributes are set to flip Y, it's 7 - the number of scanlines from the top of the object.
+					if (((this.PPU_SpriteAttribute[SecondOAMSlot] >> 7) & 1) === 0) // Attributes are not set up to flip Y
 					{
 							this.PPU_AddressBus = ((this.PPU_PatternSelect_Sprites ? 0x1000 : 0) + (this.PPU_SpritePattern[SecondOAMSlot] << 4) + ((this.PPU_Scanline & 0xFF) - this.PPU_SpriteYposition[SecondOAMSlot])) & 0xFFFF;
 					}
-					else  // Attributes are set up to flip this.Y
+					else  // Attributes are set up to flip Y
 					{
 							this.PPU_AddressBus = ((this.PPU_PatternSelect_Sprites ? 0x1000 : 0) + (this.PPU_SpritePattern[SecondOAMSlot] << 4) + ((7 - ((this.PPU_Scanline & 0xFF) - this.PPU_SpriteYposition[SecondOAMSlot])) & 7)) & 0xFFFF;
 					}
 			}
 			else //8x16 sprites
 			{
-					// In 8x16 mode, instead of using this.PPU_PatternSelect_Sprites to determine which pattern table to fetch data from...
-					// these sprites instead use bit 0 of the object's pattern information from this.OAM.
+					// In 8x16 mode, instead of using PPU_PatternSelect_Sprites to determine which pattern table to fetch data from...
+					// these sprites instead use bit 0 of the object's pattern information from OAM.
 
 					// The address is $0000 or $1000 depending on the nametable.
-					// plus (the pattern value from this.OAM, clearing bit 0) * 16
+					// plus (the pattern value from OAM, clearing bit 0) * 16
 					// plus the number of scanlines from the top of the object.
-					// if the attributes are set to flip this.Y, it's 7 - the number of scanlines from the top of the object.
+					// if the attributes are set to flip Y, it's 7 - the number of scanlines from the top of the object.
 
 					// if we're drawing the bottom half of the sprite, add 16.
-					if (((this.PPU_SpriteAttribute[SecondOAMSlot] >> 7) & 1) === 0) // Attributes are not set up to flip this.Y
+					if (((this.PPU_SpriteAttribute[SecondOAMSlot] >> 7) & 1) === 0) // Attributes are not set up to flip Y
 					{
 							if ((this.PPU_Scanline & 0xFF) - this.PPU_SpriteYposition[SecondOAMSlot] < 8)
 							{
@@ -2585,7 +2586,7 @@ class Emulator
 									this.PPU_AddressBus = ((((this.PPU_SpritePattern[SecondOAMSlot] & 1) === 1) ? 0x1000 : 0) | (((this.PPU_SpritePattern[SecondOAMSlot] & 0xFE) << 4) + 16) + (((this.PPU_Scanline & 0xFF) - this.PPU_SpriteYposition[SecondOAMSlot]) & 7)) & 0xFFFF;
 							}
 					}
-					else // Attributes are set up to flip this.Y
+					else // Attributes are set up to flip Y
 					{
 							if ((this.PPU_Scanline & 0xFF) - this.PPU_SpriteYposition[SecondOAMSlot] < 8)
 							{
@@ -2608,7 +2609,7 @@ class Emulator
 			// dots 1 through 256
 			if (this.PPU_Dot <= 256)
 			{
-					// there are 8 palettes in the this.PPU
+					// there are 8 palettes in the PPU
 					// 4 are for the background, and the other 4 are for sprites.
 					let Palette = 0;
 					// each of these palettes have 4 colors
@@ -2638,7 +2639,7 @@ class Emulator
 					{
 							let i = 0;
 
-							// check all 8 objects in secondary this.OAM
+							// check all 8 objects in secondary OAM
 							while (i < 8)
 							{
 									if (this.PPU_SpriteShifterCounter[i] === 0 || this.SkippedPreRenderDot341) // if the shifter counter === 0 (the shifter counter is decremented each ppu cycle)
@@ -2649,8 +2650,8 @@ class Emulator
 											if (SpixelL) { SpriteColor = 1; }
 											if (SpixelH) { SpriteColor |= 2; }
 
-											SpritePalette = ((this.PPU_SpriteAttribute[i] & 0x03) | 0x04); // read the palette from secondary this.OAM attributes.
-											SpritePriority = ((this.PPU_SpriteAttribute[i] >> 5) & 1) === 0;      // read the priority from secondary this.OAM attributes.
+											SpritePalette = ((this.PPU_SpriteAttribute[i] & 0x03) | 0x04); // read the palette from secondary OAM attributes.
+											SpritePriority = ((this.PPU_SpriteAttribute[i] >> 5) & 1) === 0;      // read the priority from secondary OAM attributes.
 
 									}
 									else // if no objects are in range of this pixel...
@@ -2659,7 +2660,7 @@ class Emulator
 											continue;
 									}
 
-									if (SpriteColor !== 0) // if we found an object, exit the loop. This means, objects earlier in secondary this.OAM hive higher priority over sprites later in secondary this.OAM
+									if (SpriteColor !== 0) // if we found an object, exit the loop. This means, objects earlier in secondary OAM hive higher priority over sprites later in secondary OAM
 									{
 											break;
 									}
@@ -2708,14 +2709,14 @@ class Emulator
 
 					if (this.PPU_Mask_ShowBackground || this.PPU_Mask_ShowSprites) // if rendering is enabled...
 					{
-							this.PaletteRAMAddress = (Palette << 2 | Color); // the Palette this.RAM address is determined by the palette and color we found.
+							this.PaletteRAMAddress = (Palette << 2 | Color); // the Palette RAM address is determined by the palette and color we found.
 					}
 					else
 					{
 							// rendering is disabled...
 							if ((this.PPU_ReadWriteAddress & 0x3F1F) >= 0x3F00) // if v points to palette ram:
 							{
-									this.PaletteRAMAddress = (this.PPU_ReadWriteAddress & 0x1F); // The palette this.RAM address is simply wherever the v register is. (bitwise and with $1F due to palette this.RAM mirroring)
+									this.PaletteRAMAddress = (this.PPU_ReadWriteAddress & 0x1F); // The palette RAM address is simply wherever the v register is. (bitwise and with $1F due to palette RAM mirroring)
 									if ((this.PaletteRAMAddress & 3) === 0)
 									{
 											this.PaletteRAMAddress &= 0x0F; // the transparent colors for sprites and backgrounds are shared.
@@ -2733,7 +2734,7 @@ class Emulator
 					{
 							this.PPU_VRegisterChangedOutOfVBlank = false;
 							this.PPU_PaletteCorruptionRenderingDisabledOutOfVBlank = false;
-							// this.PPU palette corruption!
+							// PPU palette corruption!
 
 							this.CorruptPalettes(Color, Palette);
 							// This corruption also results in a single discolored pixel, and this occurs on all alignments.
@@ -2741,7 +2742,7 @@ class Emulator
 
 					}
 
-					this.DotColor = ((this.PaletteRAM[0x00 | this.PaletteRAMAddress]) & 0x3F); // Get the color by reading from Palette this.RAM
+					this.DotColor = ((this.PaletteRAM[0x00 | this.PaletteRAMAddress]) & 0x3F); // Get the color by reading from Palette RAM
 
 					// though this is actually drawn to the screen 2 ppu cycles from now.
 			}
@@ -2749,10 +2750,10 @@ class Emulator
 
 	CorruptPalettes(Color, Palette)
 	{
-			// Depending on the index into a color palette being used to select a color being drawn when rendering was disabled during a nametable fetch on a visible pixel with the this.PPU V Register (bitwise AND with $3FFF) being >= $3C00...
+			// Depending on the index into a color palette being used to select a color being drawn when rendering was disabled during a nametable fetch on a visible pixel with the PPU V Register (bitwise AND with $3FFF) being >= $3C00...
 			// Palettes get "corrupted" with a specific pattern.
 			// This pattern is determined by:
-			// The lowest nybble of the this.PPU's V register,
+			// The lowest nybble of the PPU's V register,
 			// The color index into the palette,
 			// and if this is using a sprite palette. (TODO: emulate this part)
 
@@ -2779,7 +2780,7 @@ class Emulator
 					case 0:
 							// simply take the low nybble from the V register. that's the color to corrupt.
 							CorruptedPalette[this.PPU_ReadWriteAddress & 0xF] = ((this.PaletteRAM[0] & this.PaletteRAM[this.PPU_ReadWriteAddress & 0xC]) | (this.PaletteRAM[0] & this.PaletteRAM[this.PPU_ReadWriteAddress & 0xF]) | (this.PaletteRAM[this.PPU_ReadWriteAddress & 0xC] & this.PaletteRAM[this.PPU_ReadWriteAddress & 0xF]));
-							// TODO: Nybble 7 can corrupt color F. It's inconsistent though, so I'll need to circle back to this.
+							// TODO: Nybble 7 can corrupt color F. It's inconsistent though, so I'll need to circle back to 
 
 							break;
 					case 1:
@@ -2871,7 +2872,7 @@ class Emulator
 							}
 
 
-							// In some tests with case this.A, bit 3 ($08) of color 3 can remove bit 2 ($04) from the value of color 0 for the purposes of the bitwise AND. It's inconsistent though.
+							// In some tests with case A, bit 3 ($08) of color 3 can remove bit 2 ($04) from the value of color 0 for the purposes of the bitwise AND. It's inconsistent though.
 
 
 							break;
@@ -2920,7 +2921,7 @@ class Emulator
 											break;
 									case 7:
 											CorruptedPalette[0x7] &= (this.PaletteRAM[0x6] | this.PaletteRAM[0xE]);
-											//CorruptedPalette[0xF] = this.PaletteRAM[0xE];
+											//CorruptedPalette[0xF] = PaletteRAM[0xE];
 											break;
 									case 8:
 											CorruptedPalette[0x0] = this.PaletteRAM[0x2];
@@ -3124,7 +3125,7 @@ class Emulator
 							this.PPU_HighBitPlane = this.PPU_RenderTemp;
 							break;
 					case 7:
-							// and update the this.X scroll for the next tile on the nametable
+							// and update the X scroll for the next tile on the nametable
 							this.PPU_IncrementScrollX();
 							break;
 			}
@@ -3149,7 +3150,7 @@ class Emulator
 
 	FetchPPU(Address)
 	{
-			// when reading from the this.PPU's Video this.RAM, there's a lot of mapper-specific behavior to consider.
+			// when reading from the PPU's Video RAM, there's a lot of mapper-specific behavior to consider.
 			Address &= 0x3FFF;
 			if (Address < 0x2000)
 			{
@@ -3169,8 +3170,8 @@ class Emulator
 											{
 													// with the MMC1 chip, you can swap out the pattern tables.
 													// address < 0x1000 is the first pattern table, else, the second pattern table.
-													// if the final write for the MMC1 shift register was in the $A000 - $BFFF, this updates this.Cart.Mapper_1_CHR0
-													// if the final write for the MMC1 shift register was in the $B000 - $CFFF, this updates this.Cart.Mapper_1_CHR1
+													// if the final write for the MMC1 shift register was in the $A000 - $BFFF, this updates Cart.Mapper_1_CHR0
+													// if the final write for the MMC1 shift register was in the $B000 - $CFFF, this updates Cart.Mapper_1_CHR1
 													if (Address < 0x1000) { return this.Cart.CHRROM[((this.Cart.Mapper_1_CHR0 & 0x1F) * 0x1000 + Address) & (this.Cart.CHRROM.length - 1)]; }
 													else { Address &= 0xFFF; return this.Cart.CHRROM[((this.Cart.Mapper_1_CHR1 & 0x1F) * 0x1000 + Address) & (this.Cart.CHRROM.length - 1)]; }
 											}
@@ -3248,8 +3249,8 @@ class Emulator
 					Address = this.PPUAddressWithMirroring(Address);
 					if (Address >= 0x3F00)
 					{
-							// read from palette this.RAM.
-							// Palette this.RAM only returns bits 0-5, so bits 6 and 7 are this.PPU open bus.
+							// read from palette RAM.
+							// Palette RAM only returns bits 0-5, so bits 6 and 7 are PPU open bus.
 							return ((this.PaletteRAM[Address & 0x1F] & 0x3F) | (this.PPUBus & 0xC0));
 					}
 					Address &= 0x7FF;
@@ -3279,7 +3280,7 @@ class Emulator
 					{
 							if (this.PPU_SpriteShifterCounter[i] > 0 && !this.SkippedPreRenderDot341)
 							{
-									this.PPU_SpriteShifterCounter[i]--; // decrement the this.X position of all objects in secondary this.OAM. When this is zero, the ppu can draw it.
+									this.PPU_SpriteShifterCounter[i]--; // decrement the X position of all objects in secondary OAM. When this is zero, the ppu can draw it.
 							}
 							else
 							{
@@ -3298,7 +3299,7 @@ class Emulator
 
 	PPU_LoadShiftRegisters()
 	{
-			// this runs as the first step of this.PPU_Render_ShiftRegistersAndBitPlanes(), using the values determined by the previous 8 steps of this.PPU_Render_ShiftRegistersAndBitPlanes().
+			// this runs as the first step of PPU_Render_ShiftRegistersAndBitPlanes(), using the values determined by the previous 8 steps of PPU_Render_ShiftRegistersAndBitPlanes().
 			this.PPU_PatternShiftRegisterL = ((this.PPU_PatternShiftRegisterL & 0xFF00) | this.PPU_LowBitPlane);
 			this.PPU_PatternShiftRegisterH = ((this.PPU_PatternShiftRegisterH & 0xFF00) | this.PPU_HighBitPlane);
 			this.PPU_AttributeShiftRegisterL = ((this.PPU_AttributeShiftRegisterL & 0xFF00) | ((this.PPU_Attribute & 1) === 1 ? 0xFF : 0));
@@ -3339,16 +3340,16 @@ class Emulator
 							let y = (this.PPU_ReadWriteAddress & 0x03E0) >> 5;
 							if (y === 29)
 							{
-									y = 0; // reset the this.Y value and also flip some other bit in the 'v' register
+									y = 0; // reset the Y value and also flip some other bit in the 'v' register
 									this.PPU_ReadWriteAddress ^= 0x0800;
 							}
 							else if (y === 31)
 							{
-									y = 0; // reset the this.Y value
+									y = 0; // reset the Y value
 							}
 							else
 							{
-									y++; // increment the this.Y value
+									y++; // increment the Y value
 							}
 							this.PPU_ReadWriteAddress = ((this.PPU_ReadWriteAddress & 0xFC1F) | (y << 5));
 					}
@@ -3357,15 +3358,15 @@ class Emulator
 
 	PPU_ResetXScroll()
 	{
-			// If a write to $2000 occurs during this ppu cycle, this.PPU_TempVRAMAddress will be the incorrect value!
-			// The value of this.PPU_TempVRAMAddress will be corrected on the next ppu cycle, but it's already too late.
+			// If a write to $2000 occurs during this ppu cycle, PPU_TempVRAMAddress will be the incorrect value!
+			// The value of PPU_TempVRAMAddress will be corrected on the next ppu cycle, but it's already too late.
 			// This is the "scanline bug" : https://www.nesdev.org/wiki/PPU_glitches#PPUCTRL
 			// The bug is only visible if the nametable mirroring is vertical.
 			this.PPU_ReadWriteAddress = ((this.PPU_ReadWriteAddress & 0b0111101111100000) | (this.PPU_TempVRAMAddress & 0b0000010000011111));
 	}
 	PPU_ResetYScroll()
 	{
-			// The exact same issue from this.PPU_ResetXScroll() can happen here too, except this corrupts an entire frame.
+			// The exact same issue from PPU_ResetXScroll() can happen here too, except this corrupts an entire frame.
 			// The bug is only visible if the nametable mirroring is horizontal.
 			this.PPU_ReadWriteAddress = ((this.PPU_ReadWriteAddress & 0b0000010000011111) | (this.PPU_TempVRAMAddress & 0b0111101111100000));
 	}
@@ -3424,7 +3425,7 @@ class Emulator
 
 			if (this.OAMDMA_Aligned) // if the DMA is aligned
 			{
-					this.Store(this.OAM_InternalBus, 0x2004); // write to this.OAM
+					this.Store(this.OAM_InternalBus, 0x2004); // write to OAM
 					this.DMAAddress = (this.DMAAddress + 1) & 0xFF;
 					if (this.DMAAddress === 0) // if we overflow the DMA address
 					{
@@ -3531,7 +3532,7 @@ class Emulator
 							this.IgnoreH = true;
 					}
 
-					if (this.DoOAMDMA && this.FirstCycleOfOAMDMA) // interrupt suppression. (There's probably a better way to implement this) if this is the first cycle of the this.OAM DMA...
+					if (this.DoOAMDMA && this.FirstCycleOfOAMDMA) // interrupt suppression. (There's probably a better way to implement this) if this is the first cycle of the OAM DMA...
 					{
 							if (!(this.DoNMI || this.DoIRQ)) // and we are NOT running an NMI or IRQ
 							{
@@ -3547,7 +3548,7 @@ class Emulator
 					if (this.APU_PutCycle) // even cycles are puts, odd cycles are gets.
 					{
 							// Put cycle (write)
-							if (this.DoDMCDMA && this.DoOAMDMA) // if we're running both a DMC and this.OAM DMA.
+							if (this.DoDMCDMA && this.DoOAMDMA) // if we're running both a DMC and OAM DMA.
 							{
 									if (this.DMCDMA_Halt && this.OAMDMA_Halt) // both halt cycles
 									{
@@ -3557,11 +3558,11 @@ class Emulator
 									{
 											this.OAMDMA_Put();
 									}
-									else if (this.OAMDMA_Halt && !this.DMCDMA_Halt) // only this.OAM halted
+									else if (this.OAMDMA_Halt && !this.DMCDMA_Halt) // only OAM halted
 									{
 											this.DMCDMA_Put(); // Can this logically ever happen?
 									}
-									else // none halted : this.OAM DMA has priority
+									else // none halted : OAM DMA has priority
 									{
 											this.OAMDMA_Put();
 									}
@@ -3579,7 +3580,7 @@ class Emulator
 													this.DMCDMA_Put(); 
 											}
 									}
-									else // only running this.OAM DMA
+									else // only running OAM DMA
 									{
 											if (this.OAMDMA_Halt)
 											{ 
@@ -3595,7 +3596,7 @@ class Emulator
 					else
 					{
 							// Get cycle (read)
-							if (this.DoDMCDMA && this.DoOAMDMA) // if we're running both a DMC and this.OAM DMA.
+							if (this.DoDMCDMA && this.DoOAMDMA) // if we're running both a DMC and OAM DMA.
 							{
 									if (this.DMCDMA_Halt && this.OAMDMA_Halt) // both halt cycles
 									{
@@ -3605,7 +3606,7 @@ class Emulator
 									{
 											this.OAMDMA_Get();
 									}
-									else if (this.OAMDMA_Halt && !this.DMCDMA_Halt) // only this.OAM halted
+									else if (this.OAMDMA_Halt && !this.DMCDMA_Halt) // only OAM halted
 									{
 											this.DMCDMA_Get();
 									}
@@ -3628,7 +3629,7 @@ class Emulator
 													this.DMCDMA_Get(); 
 											}
 									}
-									else // only running this.OAM DMA
+									else // only running OAM DMA
 									{
 											if (this.OAMDMA_Halt) 
 											{ 
@@ -3650,21 +3651,21 @@ class Emulator
 			{
 					// cycle 0. fetch opcode:
 					this.addressBus = this.programCounter;
-					this.opCode = this.Fetch(this.addressBus); // this.Fetch the value at the program counter. This is the opcode.
+					this.opCode = this.Fetch(this.addressBus); // Fetch the value at the program counter. This is the opcode.
 
 					if (!this.SuppressInterrupt) // If we are not suppressing an interrupt, check if any interrupts are occuring.
 					{
 							if (this.DoNMI) // If an NMI is occuring,
 							{
-									this.opCode = 0; // replace the opcode with 0. (this.A BRK, which has modified behavior for NMIs)
+									this.opCode = 0; // replace the opcode with 0. (A BRK, which has modified behavior for NMIs)
 							}
 							else if (this.DoIRQ) // If an IRQ is occuring,
 							{
-									this.opCode = 0; // replace the opcode with 0. (this.A BRK, which has modified behavior for IRQs)
+									this.opCode = 0; // replace the opcode with 0. (A BRK, which has modified behavior for IRQs)
 							}
 							else if (this.DoReset) // If a RESET is occuring,
 							{
-									this.opCode = 0; // replace the opcode with 0. (this.A BRK, which has modified behavior for RESETs)
+									this.opCode = 0; // replace the opcode with 0. (A BRK, which has modified behavior for RESETs)
 							}
 							else if (this.opCode === 0) // Otherwise, if an interrupt is not occuring, and the opcode is already 0
 							{
@@ -3802,7 +3803,7 @@ class Emulator
 									}
 									break;
 
-							case 0x01: //(ORA, this.X)
+							case 0x01: //(ORA, X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -3846,7 +3847,7 @@ class Emulator
 									}
 									break;
 
-							case 0x03: //(SLO, this.X)  *** 
+							case 0x03: //(SLO, X)  *** 
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -3969,7 +3970,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x0A: //ASL this.A
+							case 0x0A: //ASL A
 									this.PollInterrupts();
 									this.Fetch(this.addressBus); // dummy read
 									this.Op_ASL_A();
@@ -4089,7 +4090,7 @@ class Emulator
 									}
 									break;
 
-							case 0x11: //(ORA) this.Y
+							case 0x11: //(ORA) Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4133,7 +4134,7 @@ class Emulator
 									}
 									break;
 
-							case 0x13: //(SLO) this.Y  *** 
+							case 0x13: //(SLO) Y  *** 
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4172,7 +4173,7 @@ class Emulator
 									}
 									break;
 
-							case 0x15: //ORA zp, this.X
+							case 0x15: //ORA zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4187,7 +4188,7 @@ class Emulator
 									}
 									break;
 
-							case 0x16: //ASL, zp this.X
+							case 0x16: //ASL, zp X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4209,7 +4210,7 @@ class Emulator
 									}
 									break;
 
-							case 0x17: //SLO zp this.X *** 
+							case 0x17: //SLO zp X *** 
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4238,7 +4239,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x19: //ORA Abs, this.Y
+							case 0x19: //ORA Abs, Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4260,7 +4261,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x1B: //SLO Abs this.Y *** 
+							case 0x1B: //SLO Abs Y *** 
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4297,7 +4298,7 @@ class Emulator
 									}
 									break;
 
-							case 0x1D: //ORA Abs, this.X
+							case 0x1D: //ORA Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4313,7 +4314,7 @@ class Emulator
 									}
 									break;
 
-							case 0x1E: //ASL, Abs, this.X
+							case 0x1E: //ASL, Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4335,7 +4336,7 @@ class Emulator
 									break;
 
 
-							case 0x1F: //SLO Abs, this.X *** 
+							case 0x1F: //SLO Abs, X *** 
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4366,7 +4367,7 @@ class Emulator
 													this.dl = this.Fetch(this.addressBus);
 													this.programCounter = (this.programCounter + 1) & 0xFFFF;
 													break;
-											case 2: // transfer stack pointer to address bus, and alu to stack pointer. I'm just reusing `this.dl` here, but this instruction actually uses the Arithmetic Logic Unit for this.
+											case 2: // transfer stack pointer to address bus, and alu to stack pointer. I'm just reusing `dl` here, but this instruction actually uses the Arithmetic Logic Unit for 
 													this.addressBus = (0x100 | this.stackPointer);
 													this.stackPointer = this.dl;
 													this.CPU_Read = false;
@@ -4392,7 +4393,7 @@ class Emulator
 									}
 									break;
 
-							case 0x21: //(AND, this.X)
+							case 0x21: //(AND, X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4436,7 +4437,7 @@ class Emulator
 									}
 									break;
 
-							case 0x23: //(RLA, this.X)  ***
+							case 0x23: //(RLA, X)  ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4553,8 +4554,8 @@ class Emulator
 													this.flag_Zero = ((this.status & 0x02) >> 1) === 1;
 													this.flag_Interrupt = ((this.status & 0x04) >> 2) === 1;
 													this.flag_Decimal = ((this.status & 0x08) >> 3) === 1;
-													this.flag_B = false;// ((this.status & 0x10) >> 4) === 1;
-													this.flag_T = true;// ((this.status & 0x20) >> 5) === 1;
+													this.flag_B = false;// ((status & 0x10) >> 4) === 1;
+													this.flag_T = true;// ((status & 0x20) >> 5) === 1;
 													this.flag_Overflow = ((this.status & 0x40) >> 6) === 1;
 													this.flag_Negative = ((this.status & 0x80) >> 7) === 1;
 													this.operationComplete = true;
@@ -4569,7 +4570,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x2A: //ROL this.A
+							case 0x2A: //ROL A
 									this.PollInterrupts();
 									this.Fetch(this.addressBus); // dummy read
 									this.Op_ROL_A();
@@ -4694,7 +4695,7 @@ class Emulator
 									}
 									break;
 
-							case 0x31: //(AND), this.Y
+							case 0x31: //(AND), Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4737,7 +4738,7 @@ class Emulator
 													break;
 									}
 									break;
-							case 0x33: //(RLA), this.Y  ***
+							case 0x33: //(RLA), Y  ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4776,7 +4777,7 @@ class Emulator
 									}
 									break;
 
-							case 0x35: //AND zp, this.X
+							case 0x35: //AND zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4791,7 +4792,7 @@ class Emulator
 									}
 									break;
 
-							case 0x36: //ROL zp, this.X
+							case 0x36: //ROL zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4813,7 +4814,7 @@ class Emulator
 									}
 									break;
 
-							case 0x37: //RLA zp, this.X  ***
+							case 0x37: //RLA zp, X  ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4842,7 +4843,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x39: //AND Abs, this.Y
+							case 0x39: //AND Abs, Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4864,7 +4865,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x3B: //RLA Abs, this.Y ***
+							case 0x3B: //RLA Abs, Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4901,7 +4902,7 @@ class Emulator
 									}
 									break;
 
-							case 0x3D: //AND Abs, this.X
+							case 0x3D: //AND Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4917,7 +4918,7 @@ class Emulator
 									}
 									break;
 
-							case 0x3E: //ROL Abs, this.X
+							case 0x3E: //ROL Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4938,7 +4939,7 @@ class Emulator
 									}
 									break;
 
-							case 0x3F: //RLA Abs, this.X ***
+							case 0x3F: //RLA Abs, X ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -4976,8 +4977,8 @@ class Emulator
 													this.flag_Zero = (this.status & 0x02) !== 0;
 													this.flag_Interrupt = (this.status & 0x04) !== 0;
 													this.flag_Decimal = (this.status & 0x08) !== 0;
-													this.flag_B = false;// ((this.status & 0x10) !== 0) === 1;
-													this.flag_T = true;// ((this.status & 0x20) !== 0) === 1;
+													this.flag_B = false;// ((status & 0x10) !== 0) === 1;
+													this.flag_T = true;// ((status & 0x20) !== 0) === 1;
 													this.flag_Overflow = (this.status & 0x40) !== 0;
 													this.flag_Negative = (this.status & 0x80) !== 0;
 
@@ -4999,7 +5000,7 @@ class Emulator
 									}
 									break;
 
-							case 0x41: //(EOR this.X)
+							case 0x41: //(EOR X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5043,7 +5044,7 @@ class Emulator
 									}
 									break;
 
-							case 0x43: //(SRE, this.X) ***
+							case 0x43: //(SRE, X) ***
 
 									switch (this.operationCycle)
 									{
@@ -5161,7 +5162,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x4A: //LSR this.A
+							case 0x4A: //LSR A
 									this.PollInterrupts();
 									this.Fetch(this.addressBus); // dummy read
 									this.Op_LSR_A();
@@ -5283,7 +5284,7 @@ class Emulator
 									}
 									break;
 
-							case 0x51: //(EOR), this.Y
+							case 0x51: //(EOR), Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5327,7 +5328,7 @@ class Emulator
 									}
 									break;
 
-							case 0x53: //(SRE) this.Y ***
+							case 0x53: //(SRE) Y ***
 
 									switch (this.operationCycle)
 									{
@@ -5367,7 +5368,7 @@ class Emulator
 									}
 									break;
 
-							case 0x55: //EOR zp , this.X
+							case 0x55: //EOR zp , X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5382,7 +5383,7 @@ class Emulator
 									}
 									break;
 
-							case 0x56: //LSR zp, this.X
+							case 0x56: //LSR zp, X
 
 									switch (this.operationCycle)
 									{
@@ -5405,7 +5406,7 @@ class Emulator
 									}
 									break;
 
-							case 0x57: //SRE zp this.X ***
+							case 0x57: //SRE zp X ***
 
 									switch (this.operationCycle)
 									{
@@ -5435,7 +5436,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x59: //EOR Abs this.Y
+							case 0x59: //EOR Abs Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5457,7 +5458,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x5B: //SRE abs, this.Y ***
+							case 0x5B: //SRE abs, Y ***
 
 									switch (this.operationCycle)
 									{
@@ -5495,7 +5496,7 @@ class Emulator
 									}
 									break;
 
-							case 0x5D: //EOR Abs, this.X
+							case 0x5D: //EOR Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5511,7 +5512,7 @@ class Emulator
 									}
 									break;
 
-							case 0x5E: //LSR abs, this.X
+							case 0x5E: //LSR abs, X
 
 									switch (this.operationCycle)
 									{
@@ -5533,7 +5534,7 @@ class Emulator
 									}
 									break;
 
-							case 0x5F: //SRE abs, this.X ***
+							case 0x5F: //SRE abs, X ***
 
 									switch (this.operationCycle)
 									{
@@ -5587,7 +5588,7 @@ class Emulator
 									}
 									break;
 
-							case 0x61: //(ADC this.X)
+							case 0x61: //(ADC X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5631,7 +5632,7 @@ class Emulator
 									}
 									break;
 
-							case 0x63: //(RRA this.X) ***
+							case 0x63: //(RRA X) ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5755,7 +5756,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x6A: //ROR this.A
+							case 0x6A: //ROR A
 									this.PollInterrupts();
 									this.Fetch(this.addressBus); // dummy read
 									this.Op_ROR_A();
@@ -5882,7 +5883,7 @@ class Emulator
 									}
 									break;
 
-							case 0x71: //(ADC), this.Y
+							case 0x71: //(ADC), Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5926,7 +5927,7 @@ class Emulator
 									}
 									break;
 
-							case 0x73: //(RRA) this.Y ***
+							case 0x73: //(RRA) Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -5965,7 +5966,7 @@ class Emulator
 									}
 									break;
 
-							case 0x75: //ADC Zp, this.X
+							case 0x75: //ADC Zp, X
 
 									switch (this.operationCycle)
 									{
@@ -5981,7 +5982,7 @@ class Emulator
 									}
 									break;
 
-							case 0x76: //ROR zp, this.X
+							case 0x76: //ROR zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6003,7 +6004,7 @@ class Emulator
 									}
 									break;
 
-							case 0x77: //RRA zp this.X ***
+							case 0x77: //RRA zp X ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6031,7 +6032,7 @@ class Emulator
 									this.flag_Interrupt = true;
 									this.operationComplete = true;
 									break;
-							case 0x79: //ADC Abs, this.Y
+							case 0x79: //ADC Abs, Y
 
 									switch (this.operationCycle)
 									{
@@ -6055,7 +6056,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x7B: //RRA Abs, this.Y ***
+							case 0x7B: //RRA Abs, Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6092,7 +6093,7 @@ class Emulator
 									}
 									break;
 
-							case 0x7D: //ADC Abs, this.X
+							case 0x7D: //ADC Abs, X
 
 									switch (this.operationCycle)
 									{
@@ -6109,7 +6110,7 @@ class Emulator
 									}
 									break;
 
-							case 0x7E: //ROR Abs, this.X
+							case 0x7E: //ROR Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6130,7 +6131,7 @@ class Emulator
 									}
 									break;
 
-							case 0x7F: //RRA Abs, this.X ***
+							case 0x7F: //RRA Abs, X ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6158,7 +6159,7 @@ class Emulator
 									break;
 
 
-							case 0x81: //(STA this.X)
+							case 0x81: //(STA X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6182,7 +6183,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0x83: //(SAX this.X)
+							case 0x83: //(SAX X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6291,7 +6292,7 @@ class Emulator
 							case 0x8B: //ANE
 									this.PollInterrupts();
 									this.GetImmediate();
-									//this.A = (((this.A | 0xFF) & this.X) & temp); 
+									//A = (((A | 0xFF) & X) & temp); 
 									// Magic = FF
 									this.A = ((this.A | 0xFF) & this.X & this.dl); // 0xEE is also known as "MAGIC", and can supposedly be different depending on the CPU's temperature.
 									this.flag_Zero = this.A === 0;
@@ -6393,7 +6394,7 @@ class Emulator
 									}
 									break;
 
-							case 0x91: //(STA), this.Y
+							case 0x91: //(STA), Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6438,7 +6439,7 @@ class Emulator
 									}
 									break;
 
-							case 0x93: // (SHA) this.Y ***
+							case 0x93: // (SHA) Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6453,15 +6454,15 @@ class Emulator
 													this.PollInterrupts();
 													if ((this.temporaryAddress & 0xFF00) !== (this.addressBus & 0xFF00))
 													{
-															// if adding this.Y to the target address crossed a page boundary, this opcode has "gone unstable"
-															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) /*& this.A*/ & this.X) << 8); // Alternate SHA behavior. The this.A register isn't used here!
+															// if adding Y to the target address crossed a page boundary, this opcode has "gone unstable"
+															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) /*& this.A*/ & this.X) << 8); // Alternate SHA behavior. The A register isn't used here!
 													}
 													// pd = the high byte of the target address + 1
 													if(this.IgnoreH)
 													{
 															this.H = 0xFF;
 													}
-													this.Store((this.A & (this.X | 0xF5) & this.H), this.addressBus); // Alternate SHA behavior. this.X is ORed with a magic number. On my console, it's $F5 for a few hours, then it flickers from $F5 and $FD.
+													this.Store((this.A & (this.X | 0xF5) & this.H), this.addressBus); // Alternate SHA behavior. X is ORed with a magic number. On my console, it's $F5 for a few hours, then it flickers from $F5 and $FD.
 													this.operationComplete = true;
 													break;
 									}
@@ -6469,7 +6470,7 @@ class Emulator
 
 									break;
 
-							case 0x94: //STY zp, this.X
+							case 0x94: //STY zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6485,7 +6486,7 @@ class Emulator
 									}
 									break;
 
-							case 0x95: //STA zp, this.X
+							case 0x95: //STA zp, X
 
 									switch (this.operationCycle)
 									{
@@ -6502,7 +6503,7 @@ class Emulator
 									}
 									break;
 
-							case 0x96: //STX zp, this.Y
+							case 0x96: //STX zp, Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6518,7 +6519,7 @@ class Emulator
 									}
 									break;
 
-							case 0x97: //AAX zp, this.Y
+							case 0x97: //AAX zp, Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6545,7 +6546,7 @@ class Emulator
 
 									break;
 
-							case 0x99: //STA Abs, this.Y
+							case 0x99: //STA Abs, Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6571,7 +6572,7 @@ class Emulator
 									break;
 
 
-							case 0x9B: //SHS, Abs this.Y ***
+							case 0x9B: //SHS, Abs Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6584,8 +6585,8 @@ class Emulator
 													this.PollInterrupts();
 													if ((this.temporaryAddress & 0xFF00) !== (this.addressBus & 0xFF00))
 													{
-															// if adding this.Y to the target address crossed a page boundary, this opcode has "gone unstable"
-															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) /*& this.A*/ & this.X) << 8); // Alternate SHA behavior. The this.A register isn't used here!
+															// if adding Y to the target address crossed a page boundary, this opcode has "gone unstable"
+															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) /*& this.A*/ & this.X) << 8); // Alternate SHA behavior. The A register isn't used here!
 													}
 													// pd = the high byte of the target address + 1
 													this.stackPointer = (this.A & this.X);
@@ -6593,13 +6594,13 @@ class Emulator
 													{
 															this.H = 0xFF;
 													}
-													this.Store((this.A & (this.X | 0xF5) & this.H), this.addressBus); // Alternate SHS behavior. this.X is ORed with a magic number. On my console, it's $F5 for a few hours, then it flickers from $F5 and $FD.
+													this.Store((this.A & (this.X | 0xF5) & this.H), this.addressBus); // Alternate SHS behavior. X is ORed with a magic number. On my console, it's $F5 for a few hours, then it flickers from $F5 and $FD.
 													this.operationComplete = true;
 													break;
 									}
 									break;
 
-							case 0x9C: //SHY Abs, this.X ***
+							case 0x9C: //SHY Abs, X ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6612,7 +6613,7 @@ class Emulator
 													this.PollInterrupts();
 													if ((this.temporaryAddress & 0xFF00) !== (this.addressBus & 0xFF00))
 													{
-															// if adding this.X to the target address crossed a page boundary, this opcode has "gone unstable"
+															// if adding X to the target address crossed a page boundary, this opcode has "gone unstable"
 															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) & this.Y) << 8);
 													}
 													if (this.IgnoreH)
@@ -6625,7 +6626,7 @@ class Emulator
 									}
 									break;
 
-							case 0x9D: //STA Abs, this.X
+							case 0x9D: //STA Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6642,7 +6643,7 @@ class Emulator
 									}
 									break;
 
-							case 0x9E: // SHX Abs, this.Y***
+							case 0x9E: // SHX Abs, Y***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6656,7 +6657,7 @@ class Emulator
 													// Not even close to what the documentation says this instruction does.
 													if ((this.temporaryAddress & 0xFF00) !== (this.addressBus & 0xFF00))
 													{
-															// if adding this.Y to the target address crossed a page boundary, this opcode has "gone unstable"
+															// if adding Y to the target address crossed a page boundary, this opcode has "gone unstable"
 															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) & this.X) << 8);
 													}
 													if (this.IgnoreH)
@@ -6669,7 +6670,7 @@ class Emulator
 									}
 									break;
 
-							case 0x9F: // SHA Abs, this.Y***
+							case 0x9F: // SHA Abs, Y***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6682,14 +6683,14 @@ class Emulator
 													this.PollInterrupts();
 													if ((this.temporaryAddress & 0xFF00) !== (this.addressBus & 0xFF00))
 													{
-															// if adding this.Y to the target address crossed a page boundary, this opcode has "gone unstable"
-															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) /*& this.A*/ & this.X) << 8); // Alternate SHA behavior. The this.A register isn't used here!
+															// if adding Y to the target address crossed a page boundary, this opcode has "gone unstable"
+															this.addressBus = ((this.addressBus & 0xFF) | ((this.addressBus >> 8) /*& this.A*/ & this.X) << 8); // Alternate SHA behavior. The A register isn't used here!
 													}
 													if (this.IgnoreH)
 													{
 															this.H = 0xFF;
 													}
-													this.Store((this.A & (this.X | 0xF5) & this.H), this.addressBus); // Alternate SHA behavior. this.X is ORed with a magic number. On my console, it's $F5 for a few hours, then it flickers from $F5 and $FD.
+													this.Store((this.A & (this.X | 0xF5) & this.H), this.addressBus); // Alternate SHA behavior. X is ORed with a magic number. On my console, it's $F5 for a few hours, then it flickers from $F5 and $FD.
 													this.operationComplete = true;
 													break;
 									}
@@ -6705,7 +6706,7 @@ class Emulator
 
 									break;
 
-							case 0xA1: //(LDA, this.X)
+							case 0xA1: //(LDA, X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6734,7 +6735,7 @@ class Emulator
 
 									break;
 
-							case 0xA3: //(LAX, this.X) ***
+							case 0xA3: //(LAX, X) ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -6852,7 +6853,7 @@ class Emulator
 									this.PollInterrupts();
 									this.GetImmediate();
 									this.A = ((this.A | 0xFF) & this.dl); // 0xEE is also known as "MAGIC", and can supposedly be different depending on the CPU's temperature.
-									this.X = this.A;  // this instruction is basically XAA but using LAX behavior, so this.X is also affected..
+									this.X = this.A;  // this instruction is basically XAA but using LAX behavior, so X is also affected..
 									this.flag_Negative = this.X >= 0x80;
 									this.flag_Zero = this.X === 0x00;
 									this.operationComplete = true;
@@ -6957,7 +6958,7 @@ class Emulator
 									}
 									break;
 
-							case 0xB1: //(LDA), this.Y
+							case 0xB1: //(LDA), Y
 
 									switch (this.operationCycle)
 									{
@@ -7004,7 +7005,7 @@ class Emulator
 									}
 									break;
 
-							case 0xB3: //(LAX), this.Y ***
+							case 0xB3: //(LAX), Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7023,7 +7024,7 @@ class Emulator
 													break;
 									}
 									break;
-							case 0xB4: //LDY zp, this.X
+							case 0xB4: //LDY zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7040,7 +7041,7 @@ class Emulator
 									}
 									break;
 
-							case 0xB5: //LDA zp, this.X
+							case 0xB5: //LDA zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7057,7 +7058,7 @@ class Emulator
 									}
 									break;
 
-							case 0xB6: //LDX zp,  this.Y
+							case 0xB6: //LDX zp,  Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7074,7 +7075,7 @@ class Emulator
 									}
 									break;
 
-							case 0xB7: //LAX zp, this.Y ***
+							case 0xB7: //LAX zp, Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7100,7 +7101,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xB9: //LDA abs , this.Y
+							case 0xB9: //LDA abs , Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7129,7 +7130,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xBB: //LAE Abs, this.Y***
+							case 0xBB: //LAE Abs, Y***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7150,7 +7151,7 @@ class Emulator
 									}
 									break;
 
-							case 0xBC: //LDY abs, this.X
+							case 0xBC: //LDY abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7169,7 +7170,7 @@ class Emulator
 									break;
 
 
-							case 0xBD: //LDA abs, this.X
+							case 0xBD: //LDA abs, X
 
 									switch (this.operationCycle)
 									{
@@ -7188,7 +7189,7 @@ class Emulator
 									}
 									break;
 
-							case 0xBE: //LDX abs , this.Y
+							case 0xBE: //LDX abs , Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7206,7 +7207,7 @@ class Emulator
 									}
 									break;
 
-							case 0xBF: //LAX Abs, this.Y ***
+							case 0xBF: //LAX Abs, Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7233,7 +7234,7 @@ class Emulator
 
 									break;
 
-							case 0xC1: //(CMP this.X),
+							case 0xC1: //(CMP X),
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7257,7 +7258,7 @@ class Emulator
 
 									break;
 
-							case 0xC3: //(DCP, this.X) ***
+							case 0xC3: //(DCP, X) ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7506,7 +7507,7 @@ class Emulator
 									}
 									break;
 
-							case 0xD1: //(CMP), this.Y
+							case 0xD1: //(CMP), Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7550,7 +7551,7 @@ class Emulator
 									}
 									break;
 
-							case 0xD3: //(DCP) this.Y ***
+							case 0xD3: //(DCP) Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7590,7 +7591,7 @@ class Emulator
 									}
 									break;
 
-							case 0xD5: //CMP zp, this.X
+							case 0xD5: //CMP zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7605,7 +7606,7 @@ class Emulator
 									}
 									break;
 
-							case 0xD6: //DEC zp, this.X
+							case 0xD6: //DEC zp, X
 
 									switch (this.operationCycle)
 									{
@@ -7628,7 +7629,7 @@ class Emulator
 									}
 									break;
 
-							case 0xD7: //DCP Zp this.X ***
+							case 0xD7: //DCP Zp X ***
 
 									switch (this.operationCycle)
 									{
@@ -7660,7 +7661,7 @@ class Emulator
 									this.operationComplete = true;
 
 									break;
-							case 0xD9: //CMP abs, this.Y
+							case 0xD9: //CMP abs, Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7683,7 +7684,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xDB: //DCP Abs this.Y ***
+							case 0xDB: //DCP Abs Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7721,7 +7722,7 @@ class Emulator
 									}
 									break;
 
-							case 0xDD: //CMP abs, this.X
+							case 0xDD: //CMP abs, X
 
 									switch (this.operationCycle)
 									{
@@ -7738,7 +7739,7 @@ class Emulator
 									}
 									break;
 
-							case 0xDE: //DEC Abs this.X
+							case 0xDE: //DEC Abs X
 
 									switch (this.operationCycle)
 									{
@@ -7760,7 +7761,7 @@ class Emulator
 									}
 									break;
 
-							case 0xDF: //DCP Abs this.X ***
+							case 0xDF: //DCP Abs X ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7789,7 +7790,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xE1: //(SBC this.X)
+							case 0xE1: //(SBC X)
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -7812,7 +7813,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xE3: //(ISC, this.X) ***
+							case 0xE3: //(ISC, X) ***
 
 									switch (this.operationCycle)
 									{
@@ -8051,7 +8052,7 @@ class Emulator
 									}
 									break;
 
-							case 0xF1: //(SBC) this.Y
+							case 0xF1: //(SBC) Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8095,7 +8096,7 @@ class Emulator
 									}
 									break;
 
-							case 0xF3: //(ISC) this.Y
+							case 0xF3: //(ISC) Y
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8135,7 +8136,7 @@ class Emulator
 									}
 									break;
 
-							case 0xF5: //SBC Zp, this.X
+							case 0xF5: //SBC Zp, X
 
 									switch (this.operationCycle)
 									{
@@ -8151,7 +8152,7 @@ class Emulator
 									}
 									break;
 
-							case 0xF6: //INC Zp, this.X
+							case 0xF6: //INC Zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8173,7 +8174,7 @@ class Emulator
 									}
 									break;
 
-							case 0xF7: //ISC zp, this.X
+							case 0xF7: //ISC zp, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8204,7 +8205,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xF9: //SBC Abs this.Y
+							case 0xF9: //SBC Abs Y
 
 									switch (this.operationCycle)
 									{
@@ -8228,7 +8229,7 @@ class Emulator
 									this.operationComplete = true;
 									break;
 
-							case 0xFB: //ISC Abs this.Y ***
+							case 0xFB: //ISC Abs Y ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8266,7 +8267,7 @@ class Emulator
 									}
 									break;
 
-							case 0xFD: //SBC Abs, this.X
+							case 0xFD: //SBC Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8282,7 +8283,7 @@ class Emulator
 									}
 									break;
 
-							case 0xFE: //INC Abs, this.X
+							case 0xFE: //INC Abs, X
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8303,7 +8304,7 @@ class Emulator
 									}
 									break;
 
-							case 0xFF: //ISC Abs, this.X ***
+							case 0xFF: //ISC Abs, X ***
 									switch (this.operationCycle)
 									{
 											case 1:
@@ -8329,7 +8330,7 @@ class Emulator
 							default: return; // logically, this can never happen.
 					}
 					this.operationCycle++; // increment this for next CPU cycle.
-					// If this.operationComplete is true, this.operationCycle will be set to 0 for next instruction.
+					// If operationComplete is true, operationCycle will be set to 0 for next instruction.
 			}
 			if (this.DoDMCDMA && this.APU_ImplicitAbortDMC4015)
 			{
@@ -8347,7 +8348,7 @@ class Emulator
 
 	Push(A)
 	{
-			// this.Store to the stack, and decrement the stack pointer.
+			// Store to the stack, and decrement the stack pointer.
 			this.Store(A, (0x100 + this.stackPointer));
 			this.stackPointer = (this.stackPointer - 1) & 0xFF;
 	}
@@ -8401,7 +8402,7 @@ class Emulator
 			switch (AddrT)
 			{
 					case 0x2000:
-							// writing here updates a large amount of this.PPU flags
+							// writing here updates a large amount of PPU flags
 							this.PPUBus = In;
 							for (let i = 0; i < 8; i++) { this.PPUBusDecay[i] = this.PPUBusDecayConstant; }
 							if (this.PPU_RESET)
@@ -8410,7 +8411,7 @@ class Emulator
 							}
 
 							// NOTE: This uses the contents of the databus (instead of "In") for a single ppu cycle. (alignment dependent)
-							// this will be fixed on the next this.PPU cycle. no worries :)
+							// this will be fixed on the next PPU cycle. no worries :)
 							// In other words, this can cause a visual bug if this write occurs on the wrong ppu cycle. (dot 257 of a visible scanline)
 							this.PPUControl_NMIEnabled = (In & 0x80) !== 0;
 							this.PPUControlIncrementMode32 = (this.dataBus & 0x4) !== 0;
@@ -8419,16 +8420,16 @@ class Emulator
 							this.PPU_PatternSelect_Background = (In & 0x10) !== 0; // these bits don't seem to be affected by open bus
 							this.PPU_TempVRAMAddress = ((this.PPU_TempVRAMAddress & 0b0111001111111111) | ((this.dataBus & 0x3) << 10)); // using 'databus' here for 1 ppu cycle is the cause of the scanline bug.
 
-							switch (this.PPUClock & 3) //depending on CPU/this.PPU alignment, the delay could be different.
+							switch (this.PPUClock & 3) //depending on CPU/PPU alignment, the delay could be different.
 							{
 									case 0:
 											this.PPU_Update2000Delay = 2; break;
 									case 1:
 											this.PPU_Update2000Delay = 2; break;
 									case 2:
-											this.PPU_Update2000Delay = 1; break; // the bug does not happen, as this this.PPU cycle fixes it.
+											this.PPU_Update2000Delay = 1; break; // the bug does not happen, as this PPU cycle fixes it.
 									case 3:
-											this.PPU_Update2000Delay = 1; break; // the bug does not happen, as this this.PPU cycle fixes it.
+											this.PPU_Update2000Delay = 1; break; // the bug does not happen, as this PPU cycle fixes it.
 							}
 							this.PPU_Update2000Value = In;
 
@@ -8436,7 +8437,7 @@ class Emulator
 							break;
 
 					case 0x2001:
-							// writing here updates a large amount of this.PPU flags
+							// writing here updates a large amount of PPU flags
 							// Is the background being drawn? Are sprites being drawn? Greyscale / color emphasis?
 							this.PPUBus = In;
 							for (let i = 0; i < 8; i++) { this.PPUBusDecay[i] = this.PPUBusDecayConstant; }
@@ -8444,26 +8445,26 @@ class Emulator
 							{
 									return;
 							}
-							switch (this.PPUClock & 3) //depending on CPU/this.PPU alignment, the delay could be different.
+							switch (this.PPUClock & 3) //depending on CPU/PPU alignment, the delay could be different.
 							{
 									case 0:
 											this.PPU_Update2001Delay = 2; this.PPU_Update2001EmphasisBitsDelay = 2; this.PPU_Update2001OAMCorruptionDelay = 2; break;
 									case 1:
-											this.PPU_Update2001Delay = 2; this.PPU_Update2001EmphasisBitsDelay = 1; this.PPU_Update2001OAMCorruptionDelay = 3; break; // this.PPU_Update2001EmphasisBitsDelay is actually 2, but different behavior than case 0 and 3.
+											this.PPU_Update2001Delay = 2; this.PPU_Update2001EmphasisBitsDelay = 1; this.PPU_Update2001OAMCorruptionDelay = 3; break; // PPU_Update2001EmphasisBitsDelay is actually 2, but different behavior than case 0 and 3.
 									case 2:
-											this.PPU_Update2001Delay = 3; this.PPU_Update2001EmphasisBitsDelay = 1; this.PPU_Update2001OAMCorruptionDelay = 3; break; // this.PPU_Update2001EmphasisBitsDelay is actually 2, but different behavior than case 0 and 3.
+											this.PPU_Update2001Delay = 3; this.PPU_Update2001EmphasisBitsDelay = 1; this.PPU_Update2001OAMCorruptionDelay = 3; break; // PPU_Update2001EmphasisBitsDelay is actually 2, but different behavior than case 0 and 3.
 									case 3:
 											this.PPU_Update2001Delay = 2; this.PPU_Update2001EmphasisBitsDelay = 2; this.PPU_Update2001OAMCorruptionDelay = 2; break;
 							}
 							this.PPU_WasRenderingBefore2001Write = this.PPU_Mask_ShowBackground || this.PPU_Mask_ShowSprites;
 							let temp_rendering = this.PPU_WasRenderingBefore2001Write;
 							let temp_renderingFromInput = ((In & 0x08) !== 0) || ((In & 0x10) !== 0);
-							//this.PPU_Mask_8PxShowBackground = (this.dataBus & 0x02) !== 0;
-							//this.PPU_Mask_8PxShowSprites = (this.dataBus & 0x04) !== 0;
+							//PPU_Mask_8PxShowBackground = (dataBus & 0x02) !== 0;
+							//PPU_Mask_8PxShowSprites = (dataBus & 0x04) !== 0;
 							this.PPU_Mask_ShowBackground_Instant = (this.dataBus & 0x08) !== 0;
 							this.PPU_Mask_ShowSprites_Instant = (this.dataBus & 0x10) !== 0;
 
-							// disabling rendering can cause this.OAM corruption.
+							// disabling rendering can cause OAM corruption.
 							if (temp_rendering && !temp_renderingFromInput)
 							{
 									// we are disabling rendering inside vblank
@@ -8487,7 +8488,7 @@ class Emulator
 											// if re-enabling rendering outside vblank
 											if (this.PPU_PendingOAMCorruption)
 											{
-													// If this.OAM corruption is going to occur
+													// If OAM corruption is going to occur
 													if (this.PPUClock === 1 || this.PPUClock === 2)
 													{
 															// if on clock alignment 1 or 2, it doesn't happen!
@@ -8520,14 +8521,14 @@ class Emulator
 							break;
 
 					case 0x2003:
-							// writing here updates the this.OAM address
+							// writing here updates the OAM address
 							this.PPUBus = In;
 							for (let i = 0; i < 8; i++) { this.PPUBusDecay[i] = this.PPUBusDecayConstant; }
 							this.PPUOAMAddress = this.PPUBus;
 							break;
 
 					case 0x2004:
-							// writing here updates the this.OAM byte at the current this.OAM address
+							// writing here updates the OAM byte at the current OAM address
 							this.PPUBus = In;
 							for (let i = 0; i < 8; i++) { this.PPUBusDecay[i] = this.PPUBusDecayConstant; }
 							if (((this.PPU_Scanline >= 240 && this.PPU_Scanline < 261) && (this.PPU_Mask_ShowBackground || this.PPU_Mask_ShowSprites)) || (!this.PPU_Mask_ShowBackground && !this.PPU_Mask_ShowSprites))
@@ -8548,14 +8549,14 @@ class Emulator
 							break;
 
 					case 0x2005:
-							// writing here updates the this.X and this.Y scroll
+							// writing here updates the X and Y scroll
 							this.PPUBus = In;
 							for (let i = 0; i < 8; i++) { this.PPUBusDecay[i] = this.PPUBusDecayConstant; }
 							if (this.PPU_RESET)
 							{
 									return;
 							}
-							switch (this.PPUClock & 3) //depending on CPU/this.PPU alignment, the delay could be different.
+							switch (this.PPUClock & 3) //depending on CPU/PPU alignment, the delay could be different.
 							{
 									case 0: this.PPU_Update2005Delay = 1; break;
 									case 1: this.PPU_Update2005Delay = 1; break;
@@ -8563,7 +8564,7 @@ class Emulator
 									case 3: this.PPU_Update2005Delay = 1; break;
 							}
 							this.PPU_Update2005Value = In;
-							// There's a slight delay before the this.PPU updates the scroll with the correct values.
+							// There's a slight delay before the PPU updates the scroll with the correct values.
 							// In the meantime, it uses the value from the databus.
 							if (!this.PPUAddrLatch)
 							{
@@ -8577,7 +8578,7 @@ class Emulator
 							break;
 
 					case 0x2006:
-							// writing here updates the this.PPU's read/write address.
+							// writing here updates the PPU's read/write address.
 							this.PPUBus = In;
 							for (let i = 0; i < 8; i++) { this.PPUBusDecay[i] = this.PPUBusDecayConstant; }
 							if (this.PPU_RESET)
@@ -8595,7 +8596,7 @@ class Emulator
 									this.PPU_TempVRAMAddress = ((this.PPU_TempVRAMAddress & 0b0111111100000000) | (In));
 									this.PPU_Update2006Value = this.PPU_TempVRAMAddress;
 									this.PPU_Update2006Value_Temp = this.PPU_ReadWriteAddress;
-									switch (this.PPUClock & 3) //depending on CPU/this.PPU alignment, the delay could be different.
+									switch (this.PPUClock & 3) //depending on CPU/PPU alignment, the delay could be different.
 									{
 											case 0: this.PPU_Update2006Delay = 4; break;
 											case 1: this.PPU_Update2006Delay = 4; break;
@@ -8630,7 +8631,7 @@ class Emulator
 							}
 							else
 							{
-									// if this isn't interrupting the this.PPU's state machine due to a read-modify-write, don't worry about all that.
+									// if this isn't interrupting the PPU's state machine due to a read-modify-write, don't worry about all that.
 									this.PPU_Data_StateMachine_NormalWriteBehavior = true;
 							}
 
@@ -8753,7 +8754,7 @@ class Emulator
 									case 1: //horizontal
 											Address = ((Address & 0x33FF) | ((Address & 0x0800) >> 1)); // mask away $0C00, bit 10 becomes the former bit 11
 											break;
-									case 2: //one-screen this.A
+									case 2: //one-screen A
 											Address &= 0x33FF;
 											break;
 									case 3: //one-screen B
@@ -8768,10 +8769,10 @@ class Emulator
 
 	StorePPUData(Address, In)
 	{
-			// writing to the this.PPU's VRAM.
+			// writing to the PPU's VRAM.
 			// first, check if the address has any mirroring going on:
 			Address = this.PPUAddressWithMirroring(Address);
-			if (Address < 0x2000) // if this is pointing to CHR this.RAM
+			if (Address < 0x2000) // if this is pointing to CHR RAM
 			{
 					this.Cart.CHRRAM[Address] = In;
 			}
@@ -8779,7 +8780,7 @@ class Emulator
 			{
 					this.PaletteRAM[Address & 0x1F] = In;
 			}
-			else // if this is not pointing to CHR this.RAM or palettes
+			else // if this is not pointing to CHR RAM or palettes
 			{
 					this.PPU[Address & 0x7FF] = In;
 
@@ -8797,7 +8798,7 @@ class Emulator
 	DebugObserve = false;
 	Observe(Address)
 	{
-			// this is mostly just so my debugger can read from this.PPU addresses without actually modifying the values of them.
+			// this is mostly just so my debugger can read from PPU addresses without actually modifying the values of them.
 			// Some registers change things when read, and this prevents that.
 			let t = this.dataBus; // copy the databus
 			this.DebugObserve = true; // this flag prevents ppu registers from updating things when reading
@@ -8821,19 +8822,19 @@ class Emulator
 			}
 			else if (Address < 0x2000)
 			{
-					// Reading from this.RAM.
-					// Ram mirroring! Only addresses $0000 through $07FF exist in this.RAM, so ignore bits 11 and 12
+					// Reading from RAM.
+					// Ram mirroring! Only addresses $0000 through $07FF exist in RAM, so ignore bits 11 and 12
 					this.dataBus = this.RAM[Address & 0x7FF];
 					this.DataPinsAreNotFloating = true;
 			}
 			else if (Address >= 0x2000 && Address < 0x4000)
 			{
-					// this.PPU registers. most of these aren't meant to be read.
+					// PPU registers. most of these aren't meant to be read.
 					Address = (Address & 0x2007);
 					switch (Address)
 					{
 							case 0x2000:
-									// Write only. Return the this.PPU databus.
+									// Write only. Return the PPU databus.
 									this.dataBus = this.PPUBus;
 									if (this.DebugObserve) // for debug logging, actually return this value.
 									{
@@ -8841,7 +8842,7 @@ class Emulator
 									}
 									break;
 							case 0x2001:
-									// Write only. Return the this.PPU databus.
+									// Write only. Return the PPU databus.
 									this.dataBus = this.PPUBus;
 									if (this.DebugObserve) // for debug logging, actually return this value.
 									{
@@ -8849,7 +8850,7 @@ class Emulator
 									}
 									break;
 							case 0x2002:
-									// this.PPU Flags.
+									// PPU Flags.
 									if(this.programCounter === 0xEA6D)
 									{
 
@@ -8860,7 +8861,7 @@ class Emulator
 											this.PPUAddrLatch = false;
 											this.PPUStatus_VBlank = false;
 											this.PPUStatus_VBlank_Delayed = false;
-											if (this.PPU_Dot < 3) // If $2002 is written to within 3 cycles of this.PPU_PendingNMI
+											if (this.PPU_Dot < 3) // If $2002 is written to within 3 cycles of PPU_PendingNMI
 											{
 													this.PPU_PendingNMI = false;
 											}
@@ -8870,10 +8871,10 @@ class Emulator
 									}
 									break;
 							case 0x2003:
-									// write only. Return the this.PPU databus.
+									// write only. Return the PPU databus.
 									this.dataBus = this.PPUBus; break;
 							case 0x2004:
-									// Read from this.OAM
+									// Read from OAM
 									this.dataBus = this.ReadOAM();
 									if ((this.PPUOAMAddress & 3) === 2)
 									{
@@ -8886,10 +8887,10 @@ class Emulator
 									}
 									break;
 							case 0x2005:
-									// write only. Return the this.PPU databus.
+									// write only. Return the PPU databus.
 									this.dataBus = this.PPUBus; break;
 							case 0x2006:
-									// write only. Return the this.PPU databus.
+									// write only. Return the PPU databus.
 									this.dataBus = this.PPUBus; break;
 							case 0x2007:
 									// Reading from VRAM.
@@ -8899,7 +8900,7 @@ class Emulator
 											// if this is 1 CPU cycle after another read, there's interesting behavior.
 											if (this.PPU_Data_StateMachine === 3 && this.PPU_Data_SateMachine_Read)
 											{
-													//Behavior that is CPU/this.PPU alignment specific
+													//Behavior that is CPU/PPU alignment specific
 													if (this.PPUClock === 0)
 													{
 															this.dataBus = this.PPU_VRAMAddressBuffer; // just read the buffer
@@ -8952,7 +8953,7 @@ class Emulator
 													}
 											}
 
-											// if the this.PPU state machine is not currently in progress...
+											// if the PPU state machine is not currently in progress...
 											if (this.PPU_Data_StateMachine === 9)
 											{
 													this.PPU_Data_StateMachine = 0; // start it at 0
@@ -8996,13 +8997,13 @@ class Emulator
 
 			if ((this.addressBus >= 0x4000 && this.addressBus <= 0x401F) || (this.DebugObserve && Address >= 0x4000 && Address <= 0x401F)) // If APU registers are active, bus conflicts can occur. Or perhaps you are intentionally reading from the APU registers...
 			{
-					//this.addressBus 
+					//addressBus 
 					let Reg = (Address & 0x1F);
 					if (Reg === 0x15)
 					{
 							if (this.DebugObserve)
 							{
-									this.dataBus = 0x40; // if this is this.DebugObserve, the databus's previous value is restored after this function. Fear not!
+									this.dataBus = 0x40; // if this is DebugObserve, the databus's previous value is restored after this function. Fear not!
 							}
 							let InternalBus = this.dataBus;
 
@@ -9021,7 +9022,7 @@ class Emulator
 
 							// footnote:
 							// Consider the following. LDA #0, STA $4015, LDA $4015.
-							// The this.APU_DMC_BytesRemaining byte isn't cleared until 3 or 4 cycles after writing 0 to $4015.
+							// The APU_DMC_BytesRemaining byte isn't cleared until 3 or 4 cycles after writing 0 to $4015.
 							// However, reading from $4015 after the needs to immediately have bit 4 cleared.
 
 							return InternalBus; // reading from $4015 can not affect the databus
@@ -9046,7 +9047,7 @@ class Emulator
 											this.Controller2ShiftCounter = 2; // The shift register isn't shifted until this is 0, decremented in every APU PUT cycle
 									}
 							}
-							this.APU_ControllerPortsStrobed = false; // This allows data to rapidly be streamed in through the this.A button if the controllers are read while strobed.
+							this.APU_ControllerPortsStrobed = false; // This allows data to rapidly be streamed in through the A button if the controllers are read while strobed.
 							if (this.DoOAMDMA && this.DataPinsAreNotFloating) // If all the databus pins are floating, then the controller bits are visible. Otherwise... not so much.
 							{
 									return this.dataBus;
@@ -9121,7 +9122,7 @@ class Emulator
 							}
 							else // if the address is < $8000
 							{
-									if (((this.Cart.Mapper_1_PRG & 0x10) === 0)) // if Work this.RAM is enabled
+									if (((this.Cart.Mapper_1_PRG & 0x10) === 0)) // if Work RAM is enabled
 									{
 											this.dataBus = this.Cart.PRGRAM[Address & 0x1FFF];
 											this.DataPinsAreNotFloating = true;
@@ -9217,7 +9218,7 @@ class Emulator
 									let tempo = (Address & 0x7FFF);
 									this.dataBus = this.Cart.PRGROM[(0x8000 * (this.Cart.Mapper_7_BankSelect & 0x07) + tempo)&(this.Cart.PRGROM.length-1)];
 							}
-							// AOROM doesn't have any PRG this.RAM
+							// AOROM doesn't have any PRG RAM
 							return;
 					case 9: //MMC2
 							if(Address >= 0xA000)
@@ -9326,14 +9327,14 @@ class Emulator
 			// This is used whenever writing anywhere with the CPU
 			if (Address < 0x2000)
 			{
-					//guarunteed to be this.RAM
+					//guarunteed to be RAM
 
 					this.RAM[Address & 0x7FF] = Input;
 
 			}
 			else if (Address < 0x4000)
 			{
-					// $2000 through $3FFF writes to the this.PPU registers
+					// $2000 through $3FFF writes to the PPU registers
 					this.StorePPURegisters(Address, Input);
 			}
 			else if (Address >= 0x4000 && Address <= 0x4015)
@@ -9362,6 +9363,7 @@ class Emulator
 									if (this.length1Enabled) this.length1Counter = Emulator.APU_LengthCounterLUT[Input >> 3];
 									this.timer1Period = (this.timer1Period & 0b00011111111) + ((Input & 0b00000111) << 8);
 									this.env1Start = true;
+									this.sequencer1Position = 0;
 									break;
 							case 0x4004:
 									this.sequencer2Sequence = Emulator.sequenceLookup[Input >> 6];
@@ -9384,6 +9386,7 @@ class Emulator
 									if (this.length2Enabled) this.length2Counter = Emulator.APU_LengthCounterLUT[Input >> 3];
 									this.timer2Period = (this.timer2Period & 0b00011111111) + ((Input & 0b00000111) << 8);
 									this.env2Start = true;
+									this.sequencer2Position = 0;
 									break;
 							case 0x4008:
 									this.linearCounterControl = (Input & 0b10000000) > 0;
@@ -9488,10 +9491,10 @@ class Emulator
 									this.APU_DMC_SampleLength = ((Input << 4) | 1);
 									break;
 
-							case 0x4014:    //this.OAM DMA
+							case 0x4014:    //OAM DMA
 									this.DoOAMDMA = true;
 									this.FirstCycleOfOAMDMA = true;
-									this.DMAAddress = 0; // the starting address for the this.OAM DMC is always page aligned.
+									this.DMAAddress = 0; // the starting address for the OAM DMC is always page aligned.
 									this.DMAPage = Input;                        
 									break;
 							case 0x4015:    //DMC DMA (and other audio channels)
@@ -9606,7 +9609,7 @@ class Emulator
 							{
 									if (((this.Cart.Mapper_1_PRG & 0x10) === 0) /*&& Mapper !== 1*/)
 									{
-											//Battery backed this.RAM
+											//Battery backed RAM
 											this.Cart.PRGRAM[Address & 0x1FFF] = Input;
 											return;
 									}
@@ -9665,8 +9668,8 @@ class Emulator
 					case 118:
 					case 119:   //MMC3
 							if (Address < 0x8000)
-							{   //Battery backed this.RAM
-									if ((this.Cart.Mapper_4_PRGRAMProtect & 0xC0) !== 0) // bit 7 enables PRG this.RAM, bit 6 enables writing there.
+							{   //Battery backed RAM
+									if ((this.Cart.Mapper_4_PRGRAMProtect & 0xC0) !== 0) // bit 7 enables PRG RAM, bit 6 enables writing there.
 									{
 											this.Cart.PRGRAM[Address & 0x1FFF] = Input;
 									}
@@ -9684,22 +9687,22 @@ class Emulator
 													let mode = (this.Cart.Mapper_4_8000 & 7);
 													switch (mode)
 													{
-															case 0: //this.PPU ($0000 - $07FF) ?+ $1000
+															case 0: //PPU ($0000 - $07FF) ?+ $1000
 																	this.Cart.Mapper_4_CHR_2K0 = (Input & 0xFE);
 																	return;
-															case 1: //this.PPU ($0800 - $0FFF) ?+ $1000
+															case 1: //PPU ($0800 - $0FFF) ?+ $1000
 																	this.Cart.Mapper_4_CHR_2K8 = (Input & 0xFE);
 																	return;
-															case 2: //this.PPU ($1000 - $13FF) ?- $1000
+															case 2: //PPU ($1000 - $13FF) ?- $1000
 																	this.Cart.Mapper_4_CHR_1K0 = Input;
 																	return;
-															case 3: //this.PPU ($1400 - $17FF) ?- $1000
+															case 3: //PPU ($1400 - $17FF) ?- $1000
 																	this.Cart.Mapper_4_CHR_1K4 = Input;
 																	return;
-															case 4: //this.PPU ($1800 - $1BFF) ?- $1000
+															case 4: //PPU ($1800 - $1BFF) ?- $1000
 																	this.Cart.Mapper_4_CHR_1K8 = Input;
 																	return;
-															case 5: //this.PPU ($1C00 - $1FFF) ?- $1000
+															case 5: //PPU ($1C00 - $1FFF) ?- $1000
 																	this.Cart.Mapper_4_CHR_1KC = Input;
 																	return;
 															case 6: //PRG ($8000 - $9FFF) ?+ 0x4000
@@ -9779,7 +9782,7 @@ class Emulator
 											{
 													if (this.Cart.Mapper_69_Bank_6_isRAMEnabled)
 													{
-															//writing to this.RAM
+															//writing to RAM
 															this.Cart.PRGRAM[Address & 0x1FFF] = Input;
 													} //else, writing to open bus
 											} //else it's ROM. writing here does nothing.
@@ -9819,7 +9822,7 @@ class Emulator
 
 	GetImmediate()
 	{
-			// this.Fetch the value at the program counter, store it in the DataLatch, and increment the Program Counter.
+			// Fetch the value at the program counter, store it in the DataLatch, and increment the Program Counter.
 			this.dl = this.Fetch(this.programCounter);
 			this.programCounter = (this.programCounter + 1) & 0xFFFF;
 			this.addressBus = this.programCounter;
@@ -9827,7 +9830,7 @@ class Emulator
 
 	GetAddressAbsolute()
 	{
-			// this.Fetch the value at the PC, and write to either the High byte or Low byte of the 16 bit address bus. Also increment the Program Counter.
+			// Fetch the value at the PC, and write to either the High byte or Low byte of the 16 bit address bus. Also increment the Program Counter.
 			if (this.operationCycle === 1)
 			{
 					// fetch address low
@@ -9843,21 +9846,21 @@ class Emulator
 
 	GetAddressZeroPage()
 	{
-			// this.Fetch the value at the PC, and this 8 bit value replaces the contents of the 16 bit address bus.
+			// Fetch the value at the PC, and this 8 bit value replaces the contents of the 16 bit address bus.
 			this.addressBus = this.Fetch(this.programCounter);
 			this.programCounter = (this.programCounter + 1) & 0xFFFF;
 	}
 
 	GetAddressIndOffX()
 	{
-			// this.Fetch the value from the PC, then using that value as an 8-bit address on the zero page, add the this.X register, then set the High byte and Low byte of the Address Bus from there.
+			// Fetch the value from the PC, then using that value as an 8-bit address on the zero page, add the X register, then set the High byte and Low byte of the Address Bus from there.
 			switch (this.operationCycle)
 			{
 					case 1: // fetch pointer address
 							this.addressBus = this.Fetch(this.programCounter);
 							this.programCounter = (this.programCounter + 1) & 0xFFFF;
 							break;
-					case 2: // Add this.X
+					case 2: // Add X
 							// dummy read
 							this.Fetch(this.addressBus);
 							this.addressBus = (this.addressBus + this.X) & 0xFF;
@@ -9876,7 +9879,7 @@ class Emulator
 			// Some instructions will always take 4 cycles to determine the address, and others will normally take 3, but take the extra cycle if a page boundary was crossed.
 
 			// either way, the general gist of this function is:
-			// this.Fetch the value from the PC. use that 8 bit location on the zero page to fetch the High and Low byte of the new Address Bus location, then add this.Y to that.
+			// Fetch the value from the PC. use that 8 bit location on the zero page to fetch the High and Low byte of the new Address Bus location, then add Y to that.
 			if (TakeExtraCycleOnlyIfPageBoundaryCrossed)
 			{
 					switch (this.operationCycle)
@@ -9888,7 +9891,7 @@ class Emulator
 							case 2: // fetch address low
 									this.dl = this.Fetch((this.addressBus & 0xFF));
 									break;
-							case 3: // fetch address high, add this.Y to low byte
+							case 3: // fetch address high, add Y to low byte
 									this.addressBus = (this.dl | (this.Fetch(((this.addressBus + 1) & 0xFF)) << 8));
 									this.temporaryAddress = this.addressBus;
 									this.H = (this.addressBus >> 8);
@@ -9918,7 +9921,7 @@ class Emulator
 							case 2: // fetch address low
 									this.dl = this.Fetch((this.addressBus & 0xFF));
 									break;
-							case 3: // fetch address high, add this.Y to low byte
+							case 3: // fetch address high, add Y to low byte
 									this.addressBus = (this.dl | (this.Fetch(((this.addressBus + 1) & 0xFF)) << 8));
 									this.temporaryAddress = this.addressBus;
 									this.addressBus = ((this.addressBus & 0xFF00) | ((this.addressBus + this.Y) & 0xFF));
@@ -9929,7 +9932,7 @@ class Emulator
 									this.H = (this.H + 1) & 0xFF; // This is incremented.
 									if (((this.temporaryAddress + this.Y) & 0xFF00) !== (this.temporaryAddress & 0xFF00))
 									{
-											this.addressBus += 0x100; // really, this would just replace the high byte with this.H, but this is less computationally expensive
+											this.addressBus += 0x100; // really, this would just replace the high byte with H, but this is less computationally expensive
 											this.addressBus &= 0xFFFF;
 									}
 									break;
@@ -9940,7 +9943,7 @@ class Emulator
 
 	GetAddressZPOffX()
 	{
-			// this.Fetch the value from the PC, then add this.X to that.
+			// Fetch the value from the PC, then add X to that.
 			if (this.operationCycle === 1)
 			{
 					// fetch address
@@ -9949,7 +9952,7 @@ class Emulator
 			}
 			else
 			{
-					// dummy read, and add this.X
+					// dummy read, and add X
 					this.dl = this.Fetch(this.addressBus);
 					this.addressBus = (this.addressBus + this.X) & 0xFF;
 			}
@@ -9957,7 +9960,7 @@ class Emulator
 
 	GetAddressZPOffY()
 	{
-			// this.Fetch the value from the PC, then add this.Y to that.
+			// Fetch the value from the PC, then add Y to that.
 			if (this.operationCycle === 1)
 			{
 					// fetch address
@@ -9966,7 +9969,7 @@ class Emulator
 			}
 			else
 			{
-					// dummy read, and add this.Y
+					// dummy read, and add Y
 					this.dl = this.Fetch(this.addressBus);
 					this.addressBus = (this.addressBus + this.Y) & 0xFF;
 			}
@@ -9976,7 +9979,7 @@ class Emulator
 	{
 			// Some instructions will always take 4 cycles to determine the address, and others will normally take 3, but take the extra cycle if a page boundary was crossed.
 
-			// this.Fetch the High and Low byte values from the byte at the PC, then add this.X.
+			// Fetch the High and Low byte values from the byte at the PC, then add X.
 			if (TakeExtraCycleIfPageBoundaryCrossed)
 			{
 					switch (this.operationCycle)
@@ -9986,7 +9989,7 @@ class Emulator
 									this.programCounter = (this.programCounter + 1) & 0xFFFF;
 
 									break;
-							case 2: // fetch address high, add this.Y to low byte
+							case 2: // fetch address high, add Y to low byte
 									this.addressBus = (this.dl | this.Fetch(this.programCounter) << 8);
 									this.temporaryAddress = this.addressBus;
 									this.H = (this.addressBus >> 8);
@@ -10029,7 +10032,7 @@ class Emulator
 									this.programCounter = (this.programCounter + 1) & 0xFFFF;
 
 									break;
-							case 2: // fetch address high, add this.Y to low byte
+							case 2: // fetch address high, add Y to low byte
 									this.addressBus = (this.dl | this.Fetch(this.programCounter) << 8);
 									this.temporaryAddress = this.addressBus;
 									this.addressBus = ((this.addressBus & 0xFF00) | ((this.addressBus + this.X) & 0xFF));
@@ -10057,7 +10060,7 @@ class Emulator
 	{
 			// Some instructions will always take 4 cycles to determine the address, and others will normally take 3, but take the extra cycle if a page boundary was crossed.
 
-			// this.Fetch the High and Low byte values from the byte at the PC, then add this.Y.
+			// Fetch the High and Low byte values from the byte at the PC, then add Y.
 			if (TakeExtraCycleIfPageBoundaryCrossed)
 			{
 					switch (this.operationCycle)
@@ -10067,7 +10070,7 @@ class Emulator
 									this.programCounter = (this.programCounter + 1) & 0xFFFF;
 
 									break;
-							case 2: // fetch address high, add this.Y to low byte
+							case 2: // fetch address high, add Y to low byte
 									this.addressBus = (this.dl | this.Fetch(this.programCounter) << 8);
 									this.temporaryAddress = this.addressBus;
 									this.H = (this.addressBus >> 8);
@@ -10110,7 +10113,7 @@ class Emulator
 									this.programCounter = (this.programCounter + 1) & 0xFFFF;
 
 									break;
-							case 2: // fetch address high, add this.Y to low byte
+							case 2: // fetch address high, add Y to low byte
 									this.addressBus = (this.dl | this.Fetch(this.programCounter) << 8);
 									this.temporaryAddress = this.addressBus;
 									this.addressBus = ((this.addressBus & 0xFF00) | ((this.addressBus + this.Y) & 0xFF));
@@ -10141,7 +10144,7 @@ class Emulator
 
 	Op_ORA(Input)
 	{
-			// Bitwise OR this.A with some value
+			// Bitwise OR A with some value
 			this.A |= Input;
 			this.flag_Negative = this.A >= 0x80; // if bit 7 of the result is set
 			this.flag_Zero = this.A === 0x00;     // if all bits are cleared
@@ -10177,7 +10180,7 @@ class Emulator
 
 	Op_AND(Input)
 	{
-			// Bitwise AND with this.A
+			// Bitwise AND with A
 			this.A &= Input;
 			this.flag_Negative = this.A >= 0x80; // if bit 7 of the result is set
 			this.flag_Zero = this.A === 0x00;     // if all bits are cleared
@@ -10223,7 +10226,7 @@ class Emulator
 
 	Op_EOR(Input)
 	{
-			// Bitwise Exclusive OR this.A
+			// Bitwise Exclusive OR A
 			this.A ^= Input;
 			this.flag_Negative = this.A >= 0x80; // if bit 7 of the result is set
 			this.flag_Zero = this.A === 0x00;     // if all bits are cleared
@@ -10303,26 +10306,26 @@ class Emulator
 
 	Op_CMP(Input)
 	{
-			// Compare this.A
-			this.flag_Zero = this.A === Input; // if this.A is equal to the value being compared
-			this.flag_Carry = this.A >= Input;// if this.A is greater than the value being compared
-			this.flag_Negative = (((this.A - Input) & 0xFF) >= 0x80); // if this.A - the value being compared would leave bit 7 set
+			// Compare A
+			this.flag_Zero = this.A === Input; // if A is equal to the value being compared
+			this.flag_Carry = this.A >= Input;// if A is greater than the value being compared
+			this.flag_Negative = (((this.A - Input) & 0xFF) >= 0x80); // if A - the value being compared would leave bit 7 set
 	}
 
 	Op_CPY(Input)
 	{
-			// Compare this.Y
-			this.flag_Zero = this.Y === Input; // if this.Y is equal to the value being compared
-			this.flag_Carry = this.Y >= Input;// if this.Y is greater than the value being compared
-			this.flag_Negative = (((this.Y - Input) & 0xFF) >= 0x80); // if this.Y - the value being compared would leave bit 7 set
+			// Compare Y
+			this.flag_Zero = this.Y === Input; // if Y is equal to the value being compared
+			this.flag_Carry = this.Y >= Input;// if Y is greater than the value being compared
+			this.flag_Negative = (((this.Y - Input) & 0xFF) >= 0x80); // if Y - the value being compared would leave bit 7 set
 	}
 
 	Op_CPX(Input)
 	{
-			// Compare this.X
-			this.flag_Zero = this.X === Input; // if this.X is equal to the value being compared
-			this.flag_Carry = this.X >= Input;// if this.X is greater than the value being compared
-			this.flag_Negative = (((this.X - Input) & 0xFF) >= 0x80); // if this.X - the value being compared would leave bit 7 set
+			// Compare X
+			this.flag_Zero = this.X === Input; // if X is equal to the value being compared
+			this.flag_Carry = this.X >= Input;// if X is greater than the value being compared
+			this.flag_Negative = (((this.X - Input) & 0xFF) >= 0x80); // if X - the value being compared would leave bit 7 set
 	}
 
 	Op_SBC(Input)
@@ -10362,11 +10365,11 @@ class Emulator
 
 	constructor()
 	{
-			this.A = 0;  // The this.A, this.X, and this.Y registers are all initialized with 0 when the console boots up.
+			this.A = 0;  // The A, X, and Y registers are all initialized with 0 when the console boots up.
 			this.X = 0;
 			this.Y = 0;
 		
-			// set up this.RAM and this.PPU this.RAM Pattern
+			// set up RAM and PPU RAM Pattern
 			let i = 0;
 			while (i < 0x800)
 			{
@@ -10385,7 +10388,7 @@ class Emulator
 					i++;
 			}
 
-			const BlarggPalette = false; // There's a this.PPU test cartridge that expects a very specific palette when you power on the console.
+			const BlarggPalette = false; // There's a PPU test cartridge that expects a very specific palette when you power on the console.
 			if (BlarggPalette)
 			{
 					//use the palette that Blargg's NES uses
@@ -10460,7 +10463,7 @@ class Emulator
 			}
 
 			this.programCounter = 0xFFFF; // Technically, this value is nondeterministic. It also doesn't matter where it is, as it will be initialized in the RESET instruction.
-			this.PPU_Scanline = 0;        // The this.PPU begins on dot 0 of scanline 0
+			this.PPU_Scanline = 0;        // The PPU begins on dot 0 of scanline 0
 			this.PPU_Dot = 7;       // Shouldn't this be 0? I don't know why, but this passes all the tests if this is 7, so...?
 
 			this.PPU_OddFrame = true;    // And this is technically cconsidered an "odd" frame when it comes to even/odd frame timing.
