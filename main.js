@@ -15,6 +15,25 @@ const ctx = cvs.getContext('2d');
 const img = ctx.createImageData(256, 240);
 const img2 = ctx.createImageData(256*8, 240);
 
+if (!window.showOpenFilePicker) window.showOpenFilePicker = () => {
+	return new Promise((res, rej) => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.style.display = 'none';
+
+		input.addEventListener('change', (event) => {
+			const files = Array.from(event.target.files);
+			if (files.length == 1) {
+				res([{getFile: async () => {return event.target.files[0]}}]);
+			}
+		});
+
+		document.body.appendChild(input);
+		input.click();
+		document.body.removeChild(input);
+	});
+};
+
 document.addEventListener('keydown', function(e) {
 	switch(e.code) {
 		case 'Minus':
