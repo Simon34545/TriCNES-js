@@ -6,7 +6,7 @@ class Cartridge
 	// Since I made this emulator with mid-instruction cartridge swapping in mind, the cartridge class holds information about the cartridge that would persist when swapped in and out.
 
 	//public string Name;         // For debugging
-	//ROM = new Uint8Array;          // The entire .nes file
+	ROM = new Uint8Array();          // The entire .nes file
 
 	PRGROM = new Uint8Array(0x4000);       // The entire program rom portion of the .nes file
 	CHRROM = new Uint8Array(0x2000);       // The entire character rom portion of the .nes file
@@ -26,7 +26,7 @@ class Cartridge
 		if (!ROM) {
 			return;
 		}
-		//ROM = ROM; // Reads the file from the provided file path, and stores every byte into an array.
+		this.ROM = ROM; // Reads the file from the provided file path, and stores every byte into an array.
 
 		// The ines header isn't actually part of the physical cartridge.
 		// Rather, the values of the ines header are manually added to provide extra information to emulators.

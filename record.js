@@ -3,6 +3,7 @@
 let opfsRoot;
 
 let frames = 0;
+let framen = 0;
 let audiodump;
 let audiohandle;
 
@@ -48,7 +49,7 @@ async function save() {
 	let header = [];
 	
 	await stream.write(str("RIFF")); // RIFF
-	await stream.write(u32(44 + audiodump.length * 4)); // 4 (file header) + 4 bytes * num samples
+	await stream.write(u32(44 + audiodump.length * 4)); // 44 (file header) + 4 bytes * num samples
 	await stream.write(str("WAVE")); // WAVE
 	
 	await stream.write(str("fmt ")); // fmt␣
@@ -73,12 +74,16 @@ async function save() {
 		await new Promise(res => setTimeout(res, 10));
 	}
 	
-	await appendFile(dumpstream, new Blob([await (await audiohandle.getFile()).arrayBuffer()], { type: 'audio/wav' }), "audio.wav");
+	if (document.getElementById('audio').checked) await appendFile(dumpstream, new Blob([await (await audiohandle.getFile()).arrayBuffer()], { type: 'audio/wav' }), "audio.wav");
 	
 	await dumpstream.write(new Uint8Array(1024)); // 1024 null bytes mark the end of a tar archive
 	
 	await dumpstream.close();
 	await downloadFile(dumphandle, "nesvideo.tar");
+	
+	recordingStarted = false;
+	recording = false;
+	framen = 0;
 }
 
 async function toBlob(canvas) {
@@ -147,8 +152,8 @@ async function appendImage(canvas, name) {
 }
 
 async function dumpframe() {
-	await appendImage(cvs, `sc_${frames.toString().padStart(6, '0')}.png`);
-	if (cvsnt.style.display != 'none') await appendImage(cvsnt, `nt_${frames.toString().padStart(6, '0')}.png`);
+	if (document.getElementById('sc').checked) await appendImage(cvs, `sc_${frames.toString().padStart(6, '0')}.png`);
+	if (cvsnt.style.display != 'none' && document.getElementById('nt').checked) await appendImage(cvsnt, `nt_${frames.toString().padStart(6, '0')}.png`);
 }
 
 function recordFrameCallback() {
@@ -160,10 +165,9 @@ function recordFrameCallback() {
 	
 	dumpframe();
 	
-	console.log("frame!", frames);
+	console.log("frame!", frames++);
 	
-	if (++frames == 600) {
-		recordingStarted = false;
+	if (frames >= framen) {
 		frameCallback = () => {};
 	}
 }
@@ -173,15 +177,14 @@ function recordAudioCallback() {
 		audiodump.push(buf[i]);
 	}
 	
-	if (frames == 600) {
-		recording = false;
+	if (frames >= framen) {
 		audioCallback =  () => {};
 		
 		save();
 	}
 }
 
-async function record() {
+async function initRecording() {
 	opfsRoot = await navigator.storage.getDirectory();
 	await opfsRoot.remove({ recursive: true });
 	
@@ -196,6 +199,27 @@ async function record() {
 	dumpstream = await dumphandle.createWritable();
 	
 	audiodump = [];
+}
+
+async function startRecording() {
+	if (recording || recordingStarted || framen) return;
+	framen = parseInt(document.getElementById('frames').value) || 1;
+	
+	await initRecording();
+	
+	switch(document.getElementById('action').selectedIndex) {
+		case 0:
+			break;
+		case 1:
+			emu = Power(emu);
+			break;
+		case 2:
+			emu.Reset();
+			break;
+		case 3:
+			startTAS();
+			break;
+	}
 	
 	frames = 0;
 	recording = true;

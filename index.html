@@ -35,9 +35,9 @@
 		<br>
 		<span>R to reset</span>
 		<br>
-		<span>L to load a ROM</span>
+		<span>P to power cycle</span>
 		<br>
-		<span>T to load a TAS</span>
+		<span>L to load a ROM</span>
 		<br>
 		<span>S to change screen size</span>
 		<br>
@@ -69,6 +69,68 @@
 		<br>
 		<span>Overlay screen:</span>
 		<input type="checkbox" id="soverlay" \>
+		<br>
+		<br>
+		<span>TAS Properties:</span>
+		<br>
+		<span>Use FCEUX frame 0 timing:</span>
+		<input type="checkbox" id="fceux" \>
+		<br>
+		<span>CPU / Master clock alignment:</span>
+		<select id="cpuclock">
+			<option>Phase 0</option>
+			<option>Phase 1</option>
+			<option>Phase 2</option>
+			<option>Phase 3</option>
+			<option>Phase 4</option>
+			<option>Phase 5</option>
+			<option>Phase 6</option>
+			<option>Phase 7</option>
+			<option>Phase 8</option>
+			<option>Phase 9</option>
+			<option>Phase 10</option>
+			<option>Phase 11</option>
+		</select>
+		<br>
+		<span>PPU / Master clock alignment:</span>
+		<select id="ppuclock">
+			<option>Phase 0</option>
+			<option>Phase 1</option>
+			<option>Phase 2</option>
+			<option>Phase 3</option>
+		</select>
+		<br>
+		<button onclick="loadTAS();">Load TAS</button>
+		<button onclick="startTAS();">Start TAS</button>
+		<br>
+		<br>
+		<span>A/V dumper:</span>
+		<br>
+		<span>Capture screen:</span>
+		<input type="checkbox" id="sc" checked \>
+		<br>
+		<span>Capture namtables:</span>
+		<input type="checkbox" id="nt" \>
+		<br>
+		<span>Capture audio:</span>
+		<input type="checkbox" id="audio" checked \>
+		<br>
+		<span>How many frames to capture:</span>
+		<input type="number" step="1" min="1" max="1000000" id="frames" \>
+		<span id="time"></span>
+		<br>
+		<span>Estimated size: </span>
+		<span id="size"></span>
+		<span> MB</span>
+		<br>
+		<select id="action">
+			<option>Do nothing</option>
+			<option>Power cycle</option>
+			<option>Reset</option>
+			<option>Start TAS</option>
+		</select>
+		<span> on first frame</span>
+		<button onclick="startRecording();">Start recording</button>
 		<script src="Emulator.js"></script>
 		<script src="AccuracyCoin.js"></script>
 		<script src="main.js"></script>

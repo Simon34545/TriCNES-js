@@ -27,6 +27,17 @@ let recording = false;
 let recordingStarted = false;
 let frameCallback = () => {};
 
+function Power(emu) {
+	const e = new Emulator();
+	
+	e.PPU_ShowScreenBoarders = document.getElementById('borders').checked;
+	e.PPU_DecodeSignal = document.getElementById('ntsc').checked;
+	
+	e.Cart = new Cartridge(emu.Cart.ROM);
+	
+	return e;
+}
+
 function updateMode() {
 	emu.PPU_ShowScreenBoarders = document.getElementById('borders').checked;
 	emu.PPU_DecodeSignal = document.getElementById('ntsc').checked;
@@ -114,40 +125,11 @@ document.addEventListener('keydown', function(e) {
 			reader.readAsArrayBuffer(fileData);
 		})();
 		break;
-		case 'KeyT':
-		(async () => {
-			const [fileHandle] = await window.showOpenFilePicker({
-				types: [
-					{
-						description: "TAS files",
-						accept: {
-							"text/plain": [".fm2"],
-							"application/zip": [".bk2"]
-						},
-					},
-				],
-				excludeAcceptAllOption: true,
-				multiple: false,
-			});
-			
-			const fileData = await fileHandle.getFile();
-			const ext = fileHandle.name.split('.').slice(-1)[0].toLowerCase();
-			
-			switch(ext) {
-				case 'fm2':
-					loadFM2(fileData);
-					break;
-				case 'bk2':
-					loadBK2(fileData);
-					break;
-				default:
-					alert("Unsupported TAS!");
-					break;
-			}
-		})();
-		break;
 		case 'KeyR':
 		emu.Reset();
+		break;
+		case 'KeyP':
+		emu = Power(emu);
 		break;
 		case 'KeyS':
 		updateMode(++screenMode);
@@ -237,8 +219,24 @@ function render(isVBlank) {
 	for (let i = 0; i < 8; i++) str += (emu.ControllerPort2 & (0x80 >> i)) ? buttons[i] : '.';
 	document.getElementById('c2').innerText = str;
 	
-	cvsnt.style.display = document.getElementById('ntviewer').checked ? 'inline' : 'none';
-	if (document.getElementById('ntviewer').checked) RenderNametable(document.getElementById('bg0').checked, document.getElementById('sborder').checked, document.getElementById('soverlay').checked);
+	if (recording) document.getElementById('ms').innerText = `${speed * 100}% - ${frames} / ${framen - 1}`;
+	
+	cvsnt.style.display = (document.getElementById('ntviewer').checked || document.getElementById('nt').checked) ? 'inline' : 'none';
+	if (document.getElementById('ntviewer').checked || document.getElementById('nt').checked) RenderNametable(document.getElementById('bg0').checked, document.getElementById('sborder').checked, document.getElementById('soverlay').checked);
+	
+	const nframes = parseInt(document.getElementById('frames').value) || 1;
+	
+	document.getElementById('time').innerText = `= ${Math.floor(nframes / 60 / 60).toString().padStart(2, '0')}m${(Math.floor(nframes / 60) % 60).toString().padStart(2, '0')}s${(nframes % 60).toString().padStart(2, '0')}f`;
+	document.getElementById('size').innerText = `= ${Math.floor((
+		nframes * 6 * 128 * 4 + 44 + 512 + // about 6 buffers per frame, 128 samples per buffer, 4 bytes per sample, + file headers and stuff
+		// averages png sizes from 600 frames
+		(document.getElementById('sc').checked &&
+		!document.getElementById('ntsc').checked ? 3792031  : 0) / 600 * nframes + // regular video
+		(document.getElementById('sc').checked &&
+		 document.getElementById('ntsc').checked ? 50312448 : 0) / 600 * nframes + // ntsc video
+		(document.getElementById('nt').checked   ? 10979695 : 0) / 600 * nframes + // nametable viewer
+		0
+	) / 1024 / 1024 * 100) / 100}`;
 	
 	frameCallback();
 }

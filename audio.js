@@ -105,7 +105,7 @@ async function setupSound() {
 		
 		const t = Math.floor((t1 - t0) * 10) / 10;
 		
-		document.getElementById('ms').innerText = `${speed * 100}% - ${t}`;
+		if (!recording) document.getElementById('ms').innerText = `${speed * 100}% - ${t}`;
 		
 		buf[128] = 1;
 	}
