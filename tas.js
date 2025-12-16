@@ -136,6 +136,8 @@ async function loadTAS() {
 			alert("Unsupported TAS!");
 			return;
 	}
+	
+	TASFmt = ext;
 }
 
 function startTAS() {
